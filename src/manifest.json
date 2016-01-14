@@ -1,0 +1,42 @@
+{
+  "manifest_version": 2,
+  "name": "Dreamwidth Tools",
+  "version": "3.5",
+  "description": "Unofficial Dreamwidth Tools",
+  "applications": {
+    "gecko": {
+      "id": "dtools@ashleywr.com"
+    }
+  },
+  "permissions": [
+    "activeTab"
+  ],
+  "browser_action": {
+    "default_icon": "dwtools/DTicon128.png",
+    "default_title": "DWTools",
+    "default_popup": "dwtools/popup_firefox.html"
+  },
+  "web_accessible_resources": [
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*.dreamwidth.org/*.html*",
+        "http://www.dreamwidth.org/talkpost_do",
+        "https://*.dreamwidth.org/*.html*",
+        "https://www.dreamwidth.org/talkpost_do"
+      ],
+      "css": [
+        "iconselect.css"
+      ],
+      "js": [
+        "dwtools/jquery.js",
+        "dwtools/spin.js",
+        "dwtools/iconselect.max.js",
+        "dwtools/rangyinputs_jquery.min.js",
+        "dwtools/code_firefox.js",
+        "dwtools/popup_firefox.js"
+      ]
+    }
+  ]
+}

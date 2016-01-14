@@ -1,0 +1,48 @@
+{
+  "update_url": "https://clients2.google.com/service/update2/crx",
+  "name": "Dreamwidth Tools",
+  "short_name": "DTools",
+  "version": "3.5",
+  "author": "Ashley Wijnen-Riems",
+  "manifest_version": 2,
+  "permissions": [
+    "storage",
+    "https://api.imgur.com/*"
+  ],
+  "icons": {
+    "16": "DTicon16.png",
+    "48": "DTicon48.png",
+    "128": "DTicon128.png"
+  },
+  "description": "Unofficial Dreamwidth Tools",
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*.dreamwidth.org/*.html*",
+        "http://www.dreamwidth.org/talkpost_do",
+        "https://*.dreamwidth.org/*.html*",
+        "https://www.dreamwidth.org/talkpost_do"
+      ],
+      "css": [
+        "iconselect.css"
+      ],
+      "js": [
+        "dwtools/jquery.js",
+        "dwtools/spin.js",
+        "dwtools/iconselect.max.js",
+        "dwtools/rangyinputs_jquery.min.js",
+        "dwtools/code.js",
+        "dwtools/popup.js"
+      ],
+      "html": [
+        "dwtools/popup.html"
+      ]
+    }
+  ],
+  "browser_action": {
+    "default_icon": "icon.png",
+    "default_popup": "popup.html"
+  }
+
+
+}
