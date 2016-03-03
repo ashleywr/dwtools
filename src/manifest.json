@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Dreamwidth Tools",
-  "version": "3.5",
+  "version": "4.0.1",
   "description": "Unofficial Dreamwidth Tools",
   "applications": {
     "gecko": {
@@ -12,9 +12,7 @@
     "activeTab"
   ],
   "browser_action": {
-    "default_icon": "dwtools/DTicon128.png",
-    "default_title": "DWTools",
-    "default_popup": "dwtools/popup_firefox.html"
+
   },
   "web_accessible_resources": [
   ],
@@ -31,15 +29,15 @@
         "https://www.dreamwidth.org/editicons"
       ],
       "css": [
-        "iconselect.css"
+        "dwtools/iconselect.css"
       ],
       "js": [
         "dwtools/jquery.js",
         "dwtools/spin.js",
         "dwtools/iconselect.max.js",
         "dwtools/rangyinputs_jquery.min.js",
-        "dwtools/code_firefox.js",
-        "dwtools/popup_firefox.js"
+        "dwtools/code_firefox.js"
+
       ]
     }
   ]

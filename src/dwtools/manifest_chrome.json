@@ -1,8 +1,8 @@
 {
   "update_url": "https://clients2.google.com/service/update2/crx",
   "name": "Dreamwidth Tools",
-  "short_name": "DTools",
-  "version": "3.5",
+  "short_name": "DWTools",
+  "version": "4.0.1",
   "author": "Ashley Wijnen-Riems",
   "manifest_version": 2,
   "permissions": [

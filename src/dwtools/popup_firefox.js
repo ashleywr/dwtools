@@ -1,9 +1,7 @@
 
+
+
 $(document).ready(function () {
-
-
-
-
 
     getDT(function () {
         $("#LAT").val(DT["LAT"]);
@@ -24,7 +22,7 @@ $(document).ready(function () {
     });
 
 
-    jQuery("body").on('blur', '#LAT', function (event) {
+    $("body").on('blur', '#LAT', function (event) {
         DT["LAT"] = $("#LAT").val();
 
         saveDT(function () {
@@ -36,7 +34,7 @@ $(document).ready(function () {
 
         });
     });
-    jQuery("body").on('blur', '#RAT', function (event) {
+    $("body").on('blur', '#RAT', function (event) {
         DT["RAT"] = $("#RAT").val();
 
         saveDT(function () {
@@ -47,7 +45,7 @@ $(document).ready(function () {
             setActionText();
         });
     });
-    jQuery("body").on('blur', '#TEXT', function (event) {
+    $("body").on('blur', '#TEXT', function (event) {
         DT["TEXT"] = $("#TEXT").val();
 
         saveDT(function () {
@@ -59,7 +57,7 @@ $(document).ready(function () {
         });
     });
 
-    jQuery("body").on('click', '#text-save', function (event) {
+    $("body").on('click', '#text-save', function (event) {
         DT["TEXT"] = $("#TEXT").val();
 
         saveDT(function () {
@@ -71,7 +69,7 @@ $(document).ready(function () {
         });
     });
 
-    jQuery("body").on('click', '#AUTOSCROLL', function (event) {
+    $("body").on('click', '#AUTOSCROLL', function (event) {
         if ($("#AUTOSCROLL").prop("checked")) {
             DT["AUTOSCROLL"] = true;
         }
@@ -84,7 +82,7 @@ $(document).ready(function () {
         });
     });
 
-    jQuery("body").on('click', '.imgur-save', function (event) {
+    $("body").on('click', '.imgur-save', function (event) {
 
         DT["IMGUR"] = [];
 
@@ -108,7 +106,7 @@ $(document).ready(function () {
 
             for (var z in DT["IMGUR"]) {
                 (function (z) {
-                    jQuery.ajax({
+                    $.ajax({
                         beforeSend: function (request) {
                             request.setRequestHeader("Authorization", "Client-ID 1f9dd436ec6a677");
                         },
@@ -170,26 +168,36 @@ function setActionText() {
 }
 
 function getDT(fn) {
-
-    if (!window.localStorage.getItem("savedDT")) {
-        DT = {
-            LAT: "<small>[ ",
-            RAT: " ]</small>",
-            TEXT: "font-family:courier new",
-            AUTOSCROLL: true,
-            IMGUR: []
-        };
-        saveDT(fn);
+    if (chrome.storage) {
+        chrome.storage.sync.get("savedDT", function (res) {
+            if (res == undefined || res.savedDT == undefined) {
+                DT = {
+                    LAT: "<small>[ ",
+                    RAT: " ]</small>",
+                    TEXT: "font-family:courier new",
+                    AUTOSCROLL: true,
+                    IMGUR: []
+                };
+                saveDT(fn);
+            }
+            else {
+                DT = JSON.parse(res.savedDT);
+                fn();
+            }
+        });
     }
-    else {
-        DT = JSON.parse(window.localStorage.getItem("savedDT"));
-        fn();
+    else{
+        fn(-1);
     }
-
 }
 
 function saveDT(fn) {
-    window.localStorage.setItem("savedDT",JSON.stringify(DT));
-    fn();
-
+    if (chrome.storage) {
+        chrome.storage.sync.set({"savedDT": JSON.stringify(DT)}, function () {
+            fn();
+        });
+    }
+    else{
+        fn(-1);
+    }
 }
