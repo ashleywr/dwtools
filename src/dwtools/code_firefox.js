@@ -90,7 +90,7 @@ $(document).ready(function () {
                 $(".userpics").append('<input type="button" id="lj_userpicselect" value="Browse">');
             }
             else {
-                $("#randomicon").replaceWith('<input type="button" id="lj_userpicselect" value="Browse">');
+                $("#randomicon").before('<input type="button" id="lj_userpicselect" value="Browse">');
             }
 
             $("#prop_picture_keyword").iconselector({
@@ -190,18 +190,19 @@ function addComments(data) {
 
 
     var cmtinfo_new = data.match(/var LJ_cmtinfo[\s\S]*}}/);
-    var obj = cmtinfo_new[0].substring(17,cmtinfo_new.length);
+    var LJ_cmtinfo = "";
 
-    var LJ_cmtinfo = $.parse(obj);
-    //try {
-    //    eval(cmtinfo_new[0]);
-    //}
-    //catch (err) {
-    //    console.log("Problem eval cmtinfo.");
-    //}
+    try {
+        //eval(cmtinfo_new[0]);
+        LJ_cmtinfo = JSON.parse(cmtinfo_new[0].substring(16,cmtinfo_new[0].length));
+    }
+    catch (err) {
+        console.log("Problem eval cmtinfo.");
+    }
 
     var sciptToExecute = ""
-    if (LJ_cmtinfo) {
+
+    if (LJ_cmtinfo != "") {
         for (var x in LJ_cmtinfo) {
             if (typeof LJ_cmtinfo[x] === 'object') {
                 sciptToExecute += "window.LJ_cmtinfo[" + x + "] = " + JSON.stringify(LJ_cmtinfo[x]) + ";";

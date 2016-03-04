@@ -732,8 +732,12 @@
             var a = jQuery.fn.iconselector_imgur.link;
             jQuery("#body, #commenttext, textarea.textbox").val(
                 function (i, val) {
-                    return '<table><tr><td style="vertical-align:top"><table height="100" width="100" background="'+a+'"><tr><td></tr></tr></table></td><td style="vertical-align:bottom">' + val  + '</td></tr></table>';
-                    //return '<img src="' + a + '" style="float:left;padding:10px"> ' + val;
+                    if(!val || val == ''){
+                        val = '[PUT_YOUR_TAG_HERE]';
+                    }
+
+                    return '<table data-dwtimg> <tr> <td style="vertical-align:top;padding:0;"> <table data-dwtimgsrc height="100" width="100" background="'+a+'"> <tr> <td></td> </tr> </table> </td> <td style="vertical-align:bottom">' + val + '</td> </tr> </table>';
+                    //return '<img data-dwtimg src="' + a + '" style=""> ' + val;
                 });
             jQuery.fn.iconselector_imgur.instance.dialog("close")
         }

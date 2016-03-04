@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Dreamwidth Tools",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "Unofficial Dreamwidth Tools",
   "applications": {
     "gecko": {

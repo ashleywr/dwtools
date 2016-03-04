@@ -1,16 +1,11 @@
 NewCommentPageList = '.page-links';
 OldCommentPageList = 'div.action-box div.inner > span > a';
 
-//For Text insertion
-var $textBox = jQuery("#body, #commenttext");
+
+var $textBox;
 function saveSelection() {
     $textBox.data("lastSelection", $textBox.getSelection());
 }
-$textBox.focusout(saveSelection);
-$textBox.bind("beforedeactivate", function () {
-    saveSelection();
-    $textBox.unbind("focusout");
-});
 
 var DT = {};
 var path = window.location.pathname;
@@ -26,6 +21,62 @@ var oldLastComment;
 var isPreviewPage = false;
 
 $(document).ready(function () {
+
+    //for imgur icons
+
+
+
+    jQuery('[data-dwtimgsrc], .comment-content > table > tbody > tr > td > table').each(function (e) {
+        jQuery(this).hide();
+        jQuery(this).parents('.comment-content').find("td").each(function(){
+            jQuery(this).css({'padding': '0'});
+        });
+        var src = jQuery(this).attr("background");
+
+        var img = jQuery(this).parents(".comment").find(".userpic img");
+        if (img.length > 0) {
+            img.css({'display':"none"}).addClass("old-img");
+            img.after("<img class='new-img' src='"+ src +"'>");
+        }
+        else {
+            jQuery(this).parents(".comment").find(".userpic").html("<img class='new-img' src="+ src +">");
+        }
+
+        var undo = chrome.extension.getURL('undo.png');
+        jQuery(this).parents(".comment").find(".comment-info").append("<span><img style='cursor: pointer' class='dw-undo' title='Undo the hidden icon (DWTools)' src=" + undo + "></span>")
+    //$(".comments-content > img").each(function(){ $(this).css({'margin-top':'-101px','position':'relative','float':'left'});});
+    });
+
+    var padded = false;
+    jQuery('.dw-undo').on("click", function () {
+        var ele = jQuery(this).parents(".comment").find(".comment-content > table > tbody > tr > td > table, [data-dwtimgsrc], .new-img, .old-img");
+        ele.toggle();
+
+        if(!padded){
+            ele.parents('.comment-content').find("td").each(function(){
+                jQuery(this).css({'padding': '.2em .5em'});
+            });
+            padded = true;
+        }
+        else{
+            ele.parents('.comment-content').find("td").each(function(){
+                jQuery(this).css({'padding': '0'});
+            });
+            padded = false;
+        }
+    });
+
+
+
+
+    //For Text insertion
+    $textBox = jQuery("#body, #commenttext");
+    $textBox.focusout(saveSelection);
+    $textBox.bind("beforedeactivate", function () {
+        saveSelection();
+        $textBox.unbind("focusout");
+    });
+
 
     getDT(function () {
 
@@ -83,7 +134,7 @@ $(document).ready(function () {
                 jQuery(".userpics").append('<input type="button" id="lj_userpicselect" value="Browse">');
             }
             else {
-                jQuery("#randomicon").replaceWith('<input type="button" id="lj_userpicselect" value="Browse">');
+                jQuery("#randomicon").before('<input type="button" id="lj_userpicselect" value="Browse">');
             }
 
             jQuery("#prop_picture_keyword").iconselector({
@@ -209,7 +260,7 @@ function addComments(data) {
         document.documentElement.appendChild(rwscript);
         rwscript.parentNode.removeChild(rwscript);
     }
-    else{
+    else {
         console.log("LJ_cmtinfo not defined.");
         console.log(data);
     }
