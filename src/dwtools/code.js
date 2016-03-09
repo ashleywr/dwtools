@@ -239,6 +239,7 @@ function addComments(data) {
 
 
     var cmtinfo_new = data.match(/var LJ_cmtinfo[\s\S]*}}/);
+
     try {
         eval(cmtinfo_new[0]);
     }
@@ -247,22 +248,24 @@ function addComments(data) {
     }
 
     var sciptToExecute = ""
-    if (LJ_cmtinfo) {
-        for (var x in LJ_cmtinfo) {
-            if (typeof LJ_cmtinfo[x] === 'object') {
-                sciptToExecute += "window.LJ_cmtinfo[" + x + "] = " + JSON.stringify(LJ_cmtinfo[x]) + ";";
+    try {
+        if (LJ_cmtinfo) {
+            for (var x in LJ_cmtinfo) {
+                if (typeof LJ_cmtinfo[x] === 'object') {
+                    sciptToExecute += "window.LJ_cmtinfo[" + x + "] = " + JSON.stringify(LJ_cmtinfo[x]) + ";";
+                }
             }
-        }
 
-        var rwscript = document.createElement("script");
-        rwscript.type = "text/javascript";
-        rwscript.textContent = sciptToExecute;
-        document.documentElement.appendChild(rwscript);
-        rwscript.parentNode.removeChild(rwscript);
+            var rwscript = document.createElement("script");
+            rwscript.type = "text/javascript";
+            rwscript.textContent = sciptToExecute;
+            document.documentElement.appendChild(rwscript);
+            rwscript.parentNode.removeChild(rwscript);
+        }
     }
-    else {
-        console.log("LJ_cmtinfo not defined.");
-        console.log(data);
+    catch(err) {
+            console.log("LJ_cmtinfo not defined.");
+            console.log(data);
     }
 
     var newPage = jQuery(body);
