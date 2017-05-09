@@ -26,7 +26,11 @@
         "http://dreamwidth.org/editicons",
         "https://dreamwidth.org/editicons",
         "http://www.dreamwidth.org/editicons",
-        "https://www.dreamwidth.org/editicons"
+        "https://www.dreamwidth.org/editicons",
+        "http://www.dreamwidth.org/manage/icons",
+        "https://www.dreamwidth.org/manage/icons",
+        "http://dreamwidth.org/manage/icons",
+        "https://dreamwidth.org/manage/icons"
       ],
       "css": [
         "dwtools/iconselect.css"
