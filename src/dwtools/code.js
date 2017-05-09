@@ -202,9 +202,16 @@ $(document).ready(function () {
     });
 
     //Check if icon page
-    if (path.indexOf("editicons") > -1) {
-        editIconsInsert();
+    if (path.indexOf("manage/icons") > -1) {
+        editIconsInsert("icons");
     }
+    if (path.indexOf("editicons") > -1) {
+        editIconsInsert("editicons");
+    }
+
+
+
+
 });
 
 jQuery(document).on('click', '.load_all', function (event) {
@@ -370,7 +377,7 @@ function htmlEscape(str) {
 
 
 //This is for icon uploading!
-function editIconsInsert() {
+function editIconsInsert(path) {
 
     var box = jQuery("#uploadBox");
     box.css({'float': 'none'});
@@ -456,7 +463,7 @@ function editIconsInsert() {
         }
 
         $.ajax({
-            url: 'editicons',
+            url: path,
             type: 'POST',
             data: formData,
             async: true,
@@ -465,7 +472,7 @@ function editIconsInsert() {
             processData: false,
             mimeType: 'multipart/form-data',
             success: function (returndata) {
-                window.location.href = "editicons"
+                window.location.href = path
             }
         });
 
