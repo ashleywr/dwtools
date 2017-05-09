@@ -247,7 +247,7 @@ function addComments(data) {
         console.log("Problem eval cmtinfo.");
     }
 
-    var sciptToExecute = ""
+    var sciptToExecute = "";
     try {
         if (LJ_cmtinfo) {
             for (var x in LJ_cmtinfo) {
@@ -301,7 +301,7 @@ function ActionTagInsert() {
             if (originalText.charAt(0) == '\n') {
                 text = "\n" + text;
             }
-            if (originalText.charAt(originalText.length) == '\n') {
+            if (originalText.charAt(originalText.length-1) == '\n') {
                 text = text + '\n';
             }
 

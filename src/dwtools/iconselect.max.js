@@ -842,6 +842,11 @@
 
                             jQuery.each(res.data.images, function (u, image) {
                                 var r = "iconselector_imgur_item_" + image.id;
+
+                                if (location.protocol === 'https:') {
+                                    image.link = image.link.replace("http://","https://");
+                                }
+
                                 var s = jQuery("<img />").attr({
                                     src: image.link,
 //                            alt: image.title,
