@@ -1,84 +1,64 @@
+//In case these selectors ever change they are up here
 NewCommentPageList = '.page-links';
 OldCommentPageList = 'div.action-box div.inner > span > a';
 
-
-var $textBox;
-function saveSelection() {
-    $textBox.data("lastSelection", $textBox.getSelection());
-}
-
 var DT = {};
+var ver, pages, page, pageList, pageBox, commentThread, nextButton, oldLastComment, $textBox;
 var path = window.location.pathname;
-
-var ver;
-var pages;
-var page;
-var pageList;
-var pageBox;
-var commentThread;
-var nextButton;
-var oldLastComment;
 var isPreviewPage = false;
+var padded = false;
+
+
+//Before page loads
+function deleteElements(selector, parentSelector) {
+
+    // in case the content script was injected after the page is partially loaded
+    doDelete(document.querySelectorAll(selector), parentSelector);
+    //doDelete(nodes);
+
+    var mo = new MutationObserver(process);
+    mo.observe(document, {subtree:true, childList:true});
+    document.addEventListener('DOMContentLoaded', function() { mo.disconnect() });
+
+    function process(mutations) {
+        for (var i = 0; i < mutations.length; i++) {
+            var nodes = mutations[i].addedNodes;
+            for (var j = 0; j < nodes.length; j++) {
+                var n = nodes[j];
+                if (n.nodeType != 1) // only process Node.ELEMENT_NODE
+                    continue;
+                doDelete(n.matches(selector) ? [n] : n.querySelectorAll(selector), parentSelector);
+            }
+        }
+    }
+    function doDelete(nodes, parent) {
+        [].forEach.call(nodes, function(node) {
+            if(parent){
+                jQuery(node).parents(".entry, .subcontent").remove();
+            }else{
+                node.innerHTML = "(Blocked.)"
+            }
+
+        });
+    }
+}
+// Chrome pre-34
+if (!Element.prototype.matches)
+    Element.prototype.matches = Element.prototype.webkitMatchesSelector;
+getFromSessionStore(function () {
+    var del = [];
+    for (var jo in DT["BLOCKEDTABLE"]) {
+        del.push(".poster-" + DT["BLOCKEDTABLE"][jo][0]);
+
+    }
+    deleteElements(del.join(","));
+    deleteElements("a[href='http://" + DT["BLOCKEDTABLE"][jo][0] + ".dreamwidth.org']", true);
+    //RemoveBlockedJournals();
+});
 
 $(document).ready(function () {
 
-    //for imgur icons
-
-
-
-    jQuery('[data-dwtimgsrc], .comment-content > table > tbody > tr > td > table').each(function (e) {
-        jQuery(this).hide();
-        jQuery(this).parents('.comment-content').find("td").each(function(){
-            jQuery(this).css({'padding': '0'});
-        });
-        var src = jQuery(this).attr("background");
-
-        var img = jQuery(this).parents(".comment").find(".userpic img");
-        if (img.length > 0) {
-            img.css({'display':"none"}).addClass("old-img");
-            img.after("<img class='new-img' src='"+ src +"'>");
-        }
-        else {
-            jQuery(this).parents(".comment").find(".userpic").html("<img class='new-img' src="+ src +">");
-        }
-
-        var undo = chrome.extension.getURL('undo.png');
-        jQuery(this).parents(".comment").find(".comment-info").append("<span><img style='cursor: pointer' class='dw-undo' title='Undo the hidden icon (DWTools)' src=" + undo + "></span>")
-    //$(".comments-content > img").each(function(){ $(this).css({'margin-top':'-101px','position':'relative','float':'left'});});
-    });
-
-    var padded = false;
-    jQuery('.dw-undo').on("click", function () {
-        var ele = jQuery(this).parents(".comment").find(".comment-content > table > tbody > tr > td > table, [data-dwtimgsrc], .new-img, .old-img");
-        ele.toggle();
-
-        if(!padded){
-            ele.parents('.comment-content').find("td").each(function(){
-                jQuery(this).css({'padding': '.2em .5em'});
-            });
-            padded = true;
-        }
-        else{
-            ele.parents('.comment-content').find("td").each(function(){
-                jQuery(this).css({'padding': '0'});
-            });
-            padded = false;
-        }
-    });
-
-
-
-
-    //For Text insertion
-    $textBox = jQuery("#body, #commenttext");
-    $textBox.focusout(saveSelection);
-    $textBox.bind("beforedeactivate", function () {
-        saveSelection();
-        $textBox.unbind("focusout");
-    });
-
-
-    getDT(function () {
+    //Get a DT object from session store before setup
 
 
         if (jQuery(NewCommentPageList).length <= 0) {
@@ -102,7 +82,6 @@ $(document).ready(function () {
             oldLastComment = ".bottomcomment";
         }
 
-//Adding buttons
         if (jQuery("#subject").length == 0) {
             isPreviewPage = true;
             $textBox = jQuery("textarea.textbox");
@@ -115,18 +94,6 @@ $(document).ready(function () {
         }
         else {
             jQuery('#subject').after('<input type="button" id="openTag" value="Action Tag"><input type="button" id="textTag" value="Text Tag">');   //<input type="button" id="editor" value="Rich Edit">');
-        }
-
-
-        if (pages > 1) {
-            if (ver == 0) {
-                jQuery(".view-top-only").parent().append(' | <span class="load_all"> (<a href="" onclick="">Load All</a>)</span>');
-            }
-            else {
-//        jQuery(".expand_all").parent().append(' | <span class="load_all"> (<a href="" onclick="">Load All</a>)</span>');
-                jQuery(".view-top-only").parent().append(' | <span class="load_all"> (<a href="" onclick="">Load All</a>)</span>');
-            }
-
         }
 
         if (jQuery('#lj_userpicselect').length == 0) {
@@ -144,20 +111,18 @@ $(document).ready(function () {
             });
         }
 
+
         jQuery("#lj_userpicselect").after('<input type="button" id="imgur_userpicselect" value="Imgur Icons">');
         jQuery("#imgur_userpicselect").iconselector_imgur({
             "selectorButtons": "#imgur_userpicselect",
             "smallicons": false,
             "metatext": true
         });
-
-
         jQuery(document).on('click', '#openTag', function (event) {
             ActionTagInsert();
         });
-
         jQuery(document).on('click', '#textTag', function (event) {
-            getDT(function () {
+            getFromSessionStore(function () {
                 var selection = $textBox.data("lastSelection");
                 $textBox.focus();
 
@@ -173,6 +138,68 @@ $(document).ready(function () {
             });
         });
 
+
+
+
+        //for imgur icons
+        jQuery('[data-dwtimgsrc], .comment-content > table > tbody > tr > td > table').each(function (e) {
+            jQuery(this).hide();
+            jQuery(this).parents('.comment-content').find("td").each(function () {
+                jQuery(this).css({'padding': '0'});
+            });
+            var src = jQuery(this).attr("background");
+
+            var img = jQuery(this).parents(".comment").find(".userpic img");
+            if (img.length > 0) {
+                img.css({'display': "none"}).addClass("old-img");
+                img.after("<img class='new-img' src='" + src + "'>");
+            }
+            else {
+                jQuery(this).parents(".comment").find(".userpic").html("<img class='new-img' src=" + src + ">");
+            }
+
+            var undo = chrome.extension.getURL('undo.png');
+            jQuery(this).parents(".comment").find(".comment-info").append("<span><img style='cursor: pointer' class='dw-undo' title='Undo the hidden icon (DWTools)' src=" + undo + "></span>")
+            //$(".comments-content > img").each(function(){ $(this).css({'margin-top':'-101px','position':'relative','float':'left'});});
+        });
+
+
+        //For Text insertion
+        $textBox = jQuery("#body, #commenttext");
+        $textBox.focusout(saveSelection);
+        $textBox.bind("beforedeactivate", function () {
+            saveSelection();
+            $textBox.unbind("focusout");
+        });
+
+        //Icon Uploading
+        if (jQuery("#uploadBox").length > 0) {
+            editIconsInsert();
+        }
+
+
+        //Add Load All comment pages button
+        if (pages > 1) {
+            if (ver == 0) {
+                jQuery(".view-top-only").parent().append(' | <span class="load_all"> (<a href="" onclick="">Load All</a>)</span>');
+            }
+            else {
+//        jQuery(".expand_all").parent().append(' | <span class="load_all"> (<a href="" onclick="">Load All</a>)</span>');
+                jQuery(".view-top-only").parent().append(' | <span class="load_all"> (<a href="" onclick="">Load All</a>)</span>');
+            }
+
+        }
+        jQuery(document).on('click', '.load_all', function (event) {
+            event.preventDefault();
+
+            jQuery(commentThread).remove();
+            jQuery(window).unbind('scroll');
+            page = 1;
+            getPage();
+
+        });
+
+        //Auto Scroll
         if (DT["AUTOSCROLL"]) {
             jQuery(window).scroll(function () {
                 if (jQuery(window).scrollTop() == jQuery(document).height() - jQuery(window).height()) {
@@ -199,88 +226,40 @@ $(document).ready(function () {
                 }
             });
         }
-    });
-
-    //Check if icon page
-    if (path.indexOf("editicons") > -1) {
-        editIconsInsert();
-    }
-});
-
-jQuery(document).on('click', '.load_all', function (event) {
-    event.preventDefault();
-
-    jQuery(commentThread).remove();
-    jQuery(window).unbind('scroll');
-    page = 1;
-    getPage();
-
-});
-
-jQuery(document).on('keydown', document, function (e) {
-    if (e.ctrlKey && ( e.which === 47)) {
-        ActionTagInsert();
-    }
-});
-
-function findAllIcons(data) {
-    var body = '<div id="body-mock">' + data.replace(/^[\s\S]*<body.*?>|<\/body>[\s\S]*$/g, '') + '</div>';
-
-    var newPage = jQuery(body);
-    var imgTags = newPage.find('.userpic-img');
-    var images = [];
-    for (var x in imgTags) {
-        images = {src: imgTags.attr('src')}
-    }
-}
-
-function addComments(data) {
-    var body = '<div id="body-mock">' + data.replace(/^[\s\S]*<body.*?>|<\/body>[\s\S]*$/g, '') + '</div>';
 
 
-    var cmtinfo_new = data.match(/var LJ_cmtinfo[\s\S]*}}/);
-
-    try {
-        eval(cmtinfo_new[0]);
-    }
-    catch (err) {
-        console.log("Problem eval cmtinfo.");
-    }
-
-    var sciptToExecute = "";
-    try {
-        if (LJ_cmtinfo) {
-            for (var x in LJ_cmtinfo) {
-                if (typeof LJ_cmtinfo[x] === 'object') {
-                    sciptToExecute += "window.LJ_cmtinfo[" + x + "] = " + JSON.stringify(LJ_cmtinfo[x]) + ";";
-                }
+        //Short Cut for Action Tag
+        /*jQuery(document).on('keydown', document, function (e) {
+            if (e.ctrlKey && ( e.which === 47)) {
+                ActionTagInsert();
             }
+        });*/
 
-            var rwscript = document.createElement("script");
-            rwscript.type = "text/javascript";
-            rwscript.textContent = sciptToExecute;
-            document.documentElement.appendChild(rwscript);
-            rwscript.parentNode.removeChild(rwscript);
-        }
-    }
-    catch(err) {
-            console.log("LJ_cmtinfo not defined.");
-            console.log(data);
-    }
 
-    var newPage = jQuery(body);
-    var newList = newPage.find(commentThread);
-    var oldLast = jQuery(oldLastComment);
+        //TODO: Undo Button
+        /*jQuery('.dw-undo').on("click", function () {
+            var ele = jQuery(this).parents(".comment").find(".comment-content > table > tbody > tr > td > table, [data-dwtimgsrc], .new-img, .old-img");
+            ele.toggle();
 
-    oldLast.before(newList);
+            if (!padded) {
+                ele.parents('.comment-content').find("td").each(function () {
+                    jQuery(this).css({'padding': '.2em .5em'});
+                });
+                padded = true;
+            }
+            else {
+                ele.parents('.comment-content').find("td").each(function () {
+                    jQuery(this).css({'padding': '0'});
+                });
+                padded = false;
+            }
+        });*/
 
-    var newActionBox = newPage.find(pageBox).html();
-    jQuery(pageBox).html(newActionBox);
 
-}
+});
 
 function ActionTagInsert() {
-    getDT(function () {
+    getFromSessionStore(function () {
         var selection = $textBox.data("lastSelection");
         $textBox.focus();
 
@@ -301,7 +280,7 @@ function ActionTagInsert() {
             if (originalText.charAt(0) == '\n') {
                 text = "\n" + text;
             }
-            if (originalText.charAt(originalText.length-1) == '\n') {
+            if (originalText.charAt(originalText.length - 1) == '\n') {
                 text = text + '\n';
             }
 
@@ -333,43 +312,53 @@ function getPage() {
     }
 
 }
+function addComments(data) {
+    var body = '<div id="body-mock">' + data.replace(/^[\s\S]*<body.*?>|<\/body>[\s\S]*$/g, '') + '</div>';
 
-function getDT(fn) {
-    chrome.storage.sync.get("savedDT", function (res) {
-        if (res == undefined) {
-            DT = {
-                LAT: "<small>[ ",
-                RAT: " ]</small>",
-                TEXT: "font-family:courier new",
-                AUTOSCROLL: true,
-                IMGUR: []
-            };
-            saveDT(fn);
+
+    var cmtinfo_new = data.match(/var LJ_cmtinfo[\s\S]*}}/);
+
+    try {
+        eval(cmtinfo_new[0]);
+    }
+    catch (err) {
+        console.log("Problem eval cmtinfo.");
+    }
+
+    var sciptToExecute = "";
+    try {
+        if (LJ_cmtinfo) {
+            for (var x in LJ_cmtinfo) {
+                if (typeof LJ_cmtinfo[x] === 'object') {
+                    sciptToExecute += "window.LJ_cmtinfo[" + x + "] = " + JSON.stringify(LJ_cmtinfo[x]) + ";";
+                }
+            }
+
+            var rwscript = document.createElement("script");
+            rwscript.type = "text/javascript";
+            rwscript.textContent = sciptToExecute;
+            document.documentElement.appendChild(rwscript);
+            rwscript.parentNode.removeChild(rwscript);
         }
-        else {
-            DT = JSON.parse(res.savedDT);
-            fn();
-        }
-    });
+    }
+    catch (err) {
+        console.log("LJ_cmtinfo not defined.");
+        console.log(data);
+    }
+
+    var newPage = jQuery(body);
+    var newList = newPage.find(commentThread);
+    var oldLast = jQuery(oldLastComment);
+
+    oldLast.before(newList);
+
+    RemoveBlockedJournals();
+
+    var newActionBox = newPage.find(pageBox).html();
+    jQuery(pageBox).html(newActionBox);
+
 }
 
-function saveDT(fn) {
-    chrome.storage.sync.set({"savedDT": JSON.stringify(DT)}, function () {
-        fn();
-    });
-}
-
-function htmlEscape(str) {
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
-}
-
-
-//This is for icon uploading!
 function editIconsInsert() {
 
     var box = jQuery("#uploadBox");
@@ -472,7 +461,6 @@ function editIconsInsert() {
         return true;
     });
 
-
     jQuery("#batch_url_text").on("paste", function (e) {
         e.preventDefault();
 
@@ -517,3 +505,78 @@ function editIconsInsert() {
     });
 
 }
+
+//Blocking journals
+function RemoveBlockedJournals(){
+
+    for (var jo in DT["BLOCKEDTABLE"]) {
+        var thread = jQuery("[lj\\:user='" +  DT["BLOCKEDTABLE"][jo][0]  + "']").parents(".comment-wrapper");
+        thread.html("(Comment removed.)");
+        var test = thread.next();
+        var count = 0;
+        while(!thread.next().hasClass("comment-depth-1") && !thread.next().hasClass("commment-pages-wrapper")){
+            thread.next().html("(Comment removed.)");
+            thread = thread.next();
+            count++;
+            if(count > 100){
+                break;
+            }
+        }
+        jQuery("a[href='http://" + DT["BLOCKEDTABLE"][jo][0] + ".dreamwidth.org']").parents(".entry, .subcontent").hide();
+    }
+}
+
+//Used for selecting text, pressing a button, then wrapping text in a tag
+function saveSelection() {
+    $textBox.data("lastSelection", $textBox.getSelection());
+}
+
+//Session Store
+function getFromSessionStore(fn) {
+    chrome.storage.sync.get("savedDT", function (res) {
+        if (res == undefined) {
+            DT = {
+                LAT: "<small>[ ",
+                RAT: " ]</small>",
+                TEXT: "font-family:courier new",
+                AUTOSCROLL: true,
+                IMGUR: [],
+                BLOCKEDTABLE: []
+            };
+            saveToSessionStore(fn);
+        }
+        else {
+            DT = JSON.parse(res.savedDT);
+            fn();
+        }
+    });
+}
+function saveToSessionStore(fn) {
+    chrome.storage.sync.set({"savedDT": JSON.stringify(DT)}, function () {
+        fn();
+    });
+}
+
+//Unused
+function htmlEscape(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+function findAllIcons(data) {
+    var body = '<div id="body-mock">' + data.replace(/^[\s\S]*<body.*?>|<\/body>[\s\S]*$/g, '') + '</div>';
+
+    var newPage = jQuery(body);
+    var imgTags = newPage.find('.userpic-img');
+    var images = [];
+    for (var x in imgTags) {
+        images = {src: imgTags.attr('src')}
+    }
+}
+
+
+
+

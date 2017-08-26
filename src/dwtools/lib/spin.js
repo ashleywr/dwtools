@@ -59,7 +59,13 @@
    */
   function ins(parent /* child1, child2, ...*/) {
     for (var i = 1, n = arguments.length; i < n; i++) {
-      parent.appendChild(arguments[i]);
+      try{
+        parent.appendChild(arguments[i]);
+      }
+      catch (e){
+
+      }
+
     }
 
     return parent;

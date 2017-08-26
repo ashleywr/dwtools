@@ -10,47 +10,37 @@
     "https://api.imgur.com/*"
   ],
   "icons": {
-    "16": "DTicon16.png",
-    "48": "DTicon48.png",
-    "128": "DTicon128.png"
+    "16": "images/DTicon16.png",
+    "48": "images/DTicon48.png",
+    "128": "images/DTicon128.png"
   },
   "description": "Unofficial Dreamwidth Tools",
   "content_scripts": [
     {
+      "run_at": "document_start",
+      "all_frames": true,
       "matches": [
-        "http://*.dreamwidth.org/*.html*",
-        "http://www.dreamwidth.org/talkpost_do",
-        "https://*.dreamwidth.org/*.html*",
-        "https://www.dreamwidth.org/talkpost_do",
-        "http://dreamwidth.org/editicons",
-        "https://dreamwidth.org/editicons",
-        "http://www.dreamwidth.org/editicons",
-        "https://www.dreamwidth.org/editicons",
-        "http://www.dreamwidth.org/manage/icons",
-        "https://www.dreamwidth.org/manage/icons",
-        "http://dreamwidth.org/manage/icons",
-        "https://dreamwidth.org/manage/icons"
-
+        "*://*.dreamwidth.org/*"
       ],
       "css": [
-        "iconselect.css"
+        "css/iconselect.css"
       ],
       "js": [
-        "jquery.js",
-        "spin.js",
-        "iconselect.max.js",
-        "rangyinputs_jquery.min.js",
-        "code.js",
-        "popup.js"
+        "lib/jquery.js",
+        "lib/spin.js",
+        "lib/iconselect.max.js",
+        "lib/rangyinputs_jquery.min.js",
+        "js/code.js",
+        "js/popup.js"
       ],
       "html": [
-        "popup.html"
+        "view/popup.html"
       ]
     }
   ],
   "browser_action": {
-    "default_icon": "icon.png",
-    "default_popup": "popup.html"
+    "default_icon": "images/icon.png",
+    "default_popup": "view/popup.html"
   },
 
   "web_accessible_resources": ["undo.png"]

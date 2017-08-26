@@ -15,8 +15,8 @@ $(document).ready(function () {
         $("#TEXT-ex").attr('style', DT["TEXT"]);
 
         drawIMGURTable();
+        drawBLOCKEDTABLETable();
     });
-
 
     jQuery("body").on('blur', '#LAT', function (event) {
         DT["LAT"] = $("#LAT").val();
@@ -134,8 +134,41 @@ $(document).ready(function () {
         });
 
     });
+
+    jQuery("body").on('click', '.block-save', function (event) {
+
+        DT["BLOCKEDTABLE"] = [];
+
+        $("#BLOCKEDTABLE tr").each(function (index, ele) {
+            var jo = $(ele).find(".journal-name-input").val();
+            if (jo.length == 0) {
+                $(ele).remove();
+            }
+            else if (jo.length > 0 && jo.length < 100) {
+                //TEST THE ALBUM
+                DT["BLOCKEDTABLE"].push([jo.toLowerCase()]);
+            }
+
+
+
+
+        });
+
+        saveDT(function () {
+
+            for (var z in DT["BLOCKEDTABLE"]) {
+                DT["BLOCKEDTABLE"][z][1] = true;
+            }
+
+            drawBLOCKEDTABLETable();
+        });
+
+    });
+
+
 });
 
+//Fills imgur album/journal table
 function drawIMGURTable() {
     //Create the imgur-album table
     $("#IMGUR").html("");
@@ -159,10 +192,35 @@ function drawIMGURTable() {
 
 }
 
+//Fills blocked journal table
+function drawBLOCKEDTABLETable() {
+    $("#BLOCKEDTABLE").html("");
+    for (var x in DT["BLOCKEDTABLE"]) {
+        var html = ' <tr>        <td>        <input type="text" class="journal-name-input" value="' + DT["BLOCKEDTABLE"][x][0] + '">        </td>     <td>        <button class="imgur-save">Save</button>';
+        if (DT["BLOCKEDTABLE"][x][1] != undefined && DT["BLOCKEDTABLE"][x][1]) {
+            html += '<div class="check" style="color: green; display: inline">&#x2713;';
+        }
+        if (DT["BLOCKEDTABLE"][x][1] != undefined && !DT["BLOCKEDTABLE"][x][1]) {
+            html += '<div class="check" style="color: red; display: inline">&#x2717;';
+        }
+        else {
+            html += '<div class="check" style="display: none;">';
+        }
+
+        html += '</div>        </td>    </tr>';
+        $("#BLOCKEDTABLE").append(html);
+
+    }
+    $("#BLOCKEDTABLE").append(' <tr>        <td>        <input type="text" class="journal-name-input">        </td>        <td>        <button class="block-save">Save</button><div class="check" style="display: none;"></div>        </td>    </tr>');
+
+}
+
+//Shows the example of action text
 function setActionText() {
     $("#ACTION").html(DT["LAT"] + " This is your action text. " + DT["RAT"]);
 }
 
+//Session Storage Functions
 function getDT(fn) {
     chrome.storage.sync.get("savedDT", function (res) {
         if (res == undefined || res.savedDT == undefined) {
@@ -171,7 +229,8 @@ function getDT(fn) {
                 RAT: " ]</small>",
                 TEXT: "font-family:courier new",
                 AUTOSCROLL: true,
-                IMGUR: []
+                IMGUR: [],
+                BLOCKEDTABLE: []
             };
             saveDT(fn);
         }
@@ -181,7 +240,6 @@ function getDT(fn) {
         }
     });
 }
-
 function saveDT(fn) {
     chrome.storage.sync.set({"savedDT": JSON.stringify(DT)}, function () {
         fn();

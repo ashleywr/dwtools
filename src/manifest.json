@@ -5,7 +5,7 @@
   "description": "Unofficial Dreamwidth Tools",
   "applications": {
     "gecko": {
-      "id": "dtools@ashleywr.com"
+      "id": "dwtools@ashleywr.com"
     }
   },
   "permissions": [
@@ -19,24 +19,17 @@
   "content_scripts": [
     {
       "matches": [
-        "http://*.dreamwidth.org/*.html*",
-        "http://www.dreamwidth.org/talkpost_do",
-        "https://*.dreamwidth.org/*.html*",
-        "https://www.dreamwidth.org/talkpost_do",
-        "http://dreamwidth.org/editicons",
-        "https://dreamwidth.org/editicons",
-        "http://www.dreamwidth.org/editicons",
-        "https://www.dreamwidth.org/editicons"
+        "*://*.dreamwidth.org/*"
       ],
       "css": [
-        "dwtools/iconselect.css"
+        "dwtools/css/iconselect.css"
       ],
       "js": [
-        "dwtools/jquery.js",
-        "dwtools/spin.js",
-        "dwtools/iconselect.max.js",
-        "dwtools/rangyinputs_jquery.min.js",
-        "dwtools/code_firefox.js"
+        "dwtools/js/jquery.js",
+        "dwtools/js/spin.js",
+        "dwtools/js/iconselect.max.js",
+        "dwtools/js/rangyinputs_jquery.min.js",
+        "code_firefox.js"
 
       ]
     }
