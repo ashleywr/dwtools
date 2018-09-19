@@ -36,11 +36,11 @@
         "dwtools/iconselect.css"
       ],
       "js": [
-        "dwtools/jquery.js",
-        "dwtools/spin.js",
-        "dwtools/iconselect.max.js",
-        "dwtools/rangyinputs_jquery.min.js",
-        "dwtools/code_firefox.js"
+        "dwtools/lib/jquery.js",
+        "dwtools/lib/spin.js",
+        "dwtools/lib/iconselect.max.js",
+        "dwtools/lib/rangyinputs_jquery.min.js",
+        "dwtools/js/code_firefox.js"
 
       ]
     }

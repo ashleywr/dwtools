@@ -2,6 +2,7 @@ NewCommentPageList = '.page-links';
 OldCommentPageList = 'div.action-box div.inner > span > a';
 
 
+
 var $textBox;
 function saveSelection() {
     $textBox.data("lastSelection", $textBox.getSelection());
@@ -26,7 +27,7 @@ $(document).ready(function () {
 
 
 
-    jQuery('[data-dwtimgsrc], .comment-content > table > tbody > tr > td > table').each(function (e) {
+    jQuery('[data-dwtimgsrc], .comment-content > table > tbody > tr > td > table').each(function () {
         jQuery(this).hide();
         jQuery(this).parents('.comment-content').find("td").each(function(){
             jQuery(this).css({'padding': '0'});
@@ -43,7 +44,7 @@ $(document).ready(function () {
         }
 
         var undo = chrome.extension.getURL('undo.png');
-        jQuery(this).parents(".comment").find(".comment-info").append("<span><img style='cursor: pointer' class='dw-undo' title='Undo the hidden icon (DWTools)' src=" + undo + "></span>")
+        jQuery(this).parents(".comment").find(".comment-info").append("<span><img style='cursor: pointer' class='dw-undo' title='Undo the hidden icon (DWTools)' src=" + undo + "></span>");
     //$(".comments-content > img").each(function(){ $(this).css({'margin-top':'-101px','position':'relative','float':'left'});});
     });
 
@@ -103,7 +104,8 @@ $(document).ready(function () {
         }
 
 //Adding buttons
-        if (jQuery("#subject").length == 0) {
+        var subject = jQuery("#subject");
+        if (subject.length == 0) {
             isPreviewPage = true;
             $textBox = jQuery("textarea.textbox");
             $textBox.focusout(saveSelection);
@@ -114,7 +116,7 @@ $(document).ready(function () {
             jQuery('input[name=subject]').after('<input type="button" id="openTag" value="Action Tag"><input type="button" id="textTag" value="Text Tag">');   //<input type="button" id="editor" value="Rich Edit">');
         }
         else {
-            jQuery('#subject').after('<input type="button" id="openTag" value="Action Tag"><input type="button" id="textTag" value="Text Tag">');   //<input type="button" id="editor" value="Rich Edit">');
+            subject.after('<input type="button" id="openTag" value="Action Tag"><input type="button" id="textTag" value="Text Tag">');   //<input type="button" id="editor" value="Rich Edit">');
         }
 
 
@@ -128,10 +130,11 @@ $(document).ready(function () {
             }
 
         }
-
-        if (jQuery('#lj_userpicselect').length == 0) {
-            if (jQuery('.userpics').length > 0) {
-                jQuery(".userpics").append('<input type="button" id="lj_userpicselect" value="Browse">');
+        var lj_userpicselect = jQuery('#lj_userpicselect');
+        if (lj_userpicselect.length == 0) {
+            var userpics = jQuery('.userpics');
+            if (userpics.length > 0) {
+                userpics.append('<input type="button" id="lj_userpicselect" value="Browse">');
             }
             else {
                 jQuery("#randomicon").before('<input type="button" id="lj_userpicselect" value="Browse">');
@@ -144,7 +147,7 @@ $(document).ready(function () {
             });
         }
 
-        jQuery("#lj_userpicselect").after('<input type="button" id="imgur_userpicselect" value="Imgur Icons">');
+        lj_userpicselect.after('<input type="button" id="imgur_userpicselect" value="Imgur Icons">');
         jQuery("#imgur_userpicselect").iconselector_imgur({
             "selectorButtons": "#imgur_userpicselect",
             "smallicons": false,
@@ -152,11 +155,11 @@ $(document).ready(function () {
         });
 
 
-        jQuery(document).on('click', '#openTag', function (event) {
+        jQuery(document).on('click', '#openTag', function () {
             ActionTagInsert();
         });
 
-        jQuery(document).on('click', '#textTag', function (event) {
+        jQuery(document).on('click', '#textTag', function () {
             getDT(function () {
                 var selection = $textBox.data("lastSelection");
                 $textBox.focus();
@@ -230,17 +233,6 @@ jQuery(document).on('keydown', document, function (e) {
     }
 });
 
-function findAllIcons(data) {
-    var body = '<div id="body-mock">' + data.replace(/^[\s\S]*<body.*?>|<\/body>[\s\S]*$/g, '') + '</div>';
-
-    var newPage = jQuery(body);
-    var imgTags = newPage.find('.userpic-img');
-    var images = [];
-    for (var x in imgTags) {
-        images = {src: imgTags.attr('src')}
-    }
-}
-
 function addComments(data) {
     var body = '<div id="body-mock">' + data.replace(/^[\s\S]*<body.*?>|<\/body>[\s\S]*$/g, '') + '</div>';
 
@@ -248,6 +240,7 @@ function addComments(data) {
     var cmtinfo_new = data.match(/var LJ_cmtinfo[\s\S]*}}/);
 
     try {
+        //needs eval because for some reason lj uses octals in numbers
         eval(cmtinfo_new[0]);
     }
     catch (err) {

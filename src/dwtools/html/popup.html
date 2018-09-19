@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dreamwidth Tools</title>
+
+
+    <!--
+      - JavaScript and HTML must be in separate files: see our Content Security
+      - Policy documentation[1] for details and explanation.
+      -
+      - [1]: http://developer.chrome.com/extensions/contentSecurityPolicy.html
+     -->
+    <link rel="stylesheet" href="../css/bootstrap.min.css">
+
+
+    <style>
+        body {
+            /*font-size: 13px;*/
+            /*background-color: #e9eaeb;*/
+            background-color: #f9f9f9;
+            /*margin: auto;*/
+            width: 38em;
+            padding: 10px;
+        }
+
+        /*img {*/
+        /*margin: 5px;*/
+        /*border: 2px solid black;*/
+        /*vertical-align: middle;*/
+        /*width: 75px;*/
+        /*height: 75px;*/
+        /*}*/
+
+        /*.wrapper {*/
+        /*background-color: #fdfdfd;*/
+        /*padding: 5px 10px 5px 10px;*/
+        /*border: 1px solid #c9cacb;*/
+        /*border-radius: 10px;*/
+        /*}*/
+
+        .valid-feedback.feedback-icon,
+        .invalid-feedback.feedback-icon {
+            position: absolute;
+            width: auto;
+            /*bottom: 10px;*/
+            top: 6px;
+            right: 10px;
+            margin-top: 0;
+            height: 15px;
+        }
+
+        .valid {
+            border-color: #28a745;
+        }
+
+        .invalid {
+            border-color: red;
+        }
+
+
+    </style>
+
+    <script type="text/javascript" src="../lib/jquery.js"></script>
+    <script type="text/javascript" src="../js/popup.js"></script>
+</head>
+<body>
+
+<div class="container-fluid">
+
+
+    <!--<div class="jumbotron">-->
+    <h4 class="text-center">DW Tools Settings</h4>
+    <hr>
+    <!--</div>-->
+
+    <div class="row mb-1">
+
+        <h6>Action Tag</h6>
+        <div class="col-12">
+
+            <table style="text-align: center;width: 100%;   " class="">
+                <thead>
+                <tr>
+                    <td class="" style="text-align: center"><span class="badge badge-light">Left Tag</span></td>
+                    <td></td>
+                    <td style="text-align: center"><span class="badge badge-light">Right Tag</span></td>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>
+                        <div class="form-group position-relative">
+                            <input title="LAT" type="text" id="LAT" value="&lt;small&gt;[&nbsp;"
+                                   style="text-align: center;" class="form-control form-control-sm autosave">
+                            <div class="valid-feedback feedback-icon">&#x2713;</div>
+                        </div>
+                    </td>
+                    <td>
+                        This is your action text.
+                    </td>
+                    <td>
+                        <div class="form-group position-relative">
+                            <input title="RAT" type="text" id="RAT" value="&nbsp;]&lt;/small&gt;"
+                                   style="text-align: center;" class="form-control form-control-sm autosave">
+                            <div class="valid-feedback feedback-icon">&#x2713;</div>
+                        </div>
+                    </td>
+                </tr>
+                <!--<tr>-->
+                <!--<td colspan="3">&nbsp;</td>-->
+                <!--</tr>-->
+                <tr>
+                    <td style="text-align: center" id="ACTION" colspan="3">
+
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="row mb-2">
+
+        <h6>Text Tags Style</h6>
+        <div class="col-12 no-gutters">
+            <div class="col-8 ">
+                <small style="" class="text-muted">Valid CSS only.</small>
+                <div class="input-group mb-3 position-relative">
+
+                    <input type="text" id="TEXT" value="font-family:courier new"
+                           class="form-control form-control-sm autosave"
+                           title="TEXT">
+                    <div id="text-check" class="valid-feedback feedback-icon">&#x2713;</div>
+                </div>
+
+
+            </div>
+            <div class=""
+                 style="font-family: Verdana, Helvetica, Arial, sans-serif;font-size: 12px;font-style: normal;font-variant: normal;line-height: 18px;font-weight: normal;text-align: center">
+                <span id="TEXT-ex" style="text-align: center" class="">This is what your text will look like.</span>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="row mb-1">
+        <h6>Autoscroll Comment Pages</h6>
+        <div class="col-12 no-gutters">
+
+            <div class="form-check">
+                <div class="input-group mb-3 position-relative">
+                    <input class="form-check-input" type="checkbox" id="AUTOSCROLL">
+                    <label class="form-check-label" for="AUTOSCROLL">
+                        Enable
+                    </label>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-1">
+        <h6>Imgur Albums</h6>
+        <div class="col-12 no-gutters">
+            <div class="mb-2">
+                <div class="row">
+                    <small style="font-size: 09px" class="text-muted">
+                        Imgur icons are displayed inline in comments to non-DWTools users.
+
+                    </small>
+                </div>
+                <div class="row">
+                    <small style="font-size: 09px" class="text-muted">
+                        Example album Id is in bold: http://imgur.com/a/<b>RRvRv</b>#0
+                    </small>
+                </div>
+            </div>
+
+            <div id="IMGUR-saved" class="col-12 mb-4">
+
+
+            </div>
+
+            <div id="IMGUR" class="col-12">
+
+                <form class="imgur-form">
+                    <div class="form-row">
+                        <div class="col">
+                            <div class="form-group position-relative">
+                                <input type="text" class="form-control form-control-sm journal-name-input"
+                                       placeholder="Journal">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group position-relative imagur-album-form">
+                                <input type="text" class="form-control form-control-sm imgur-id-input"
+                                       placeholder="Imgur Album Id">
+                                <div class="invalid-feedback">Invalid Album Id</div>
+                                <div id="album-check" class="invalid-feedback feedback-icon">&#x2717;</div>
+
+                            </div>
+
+                        </div>
+                        <div class="col">
+                            <button class="btn btn-primary btn-sm imgur-save" type="submit">Save</button>
+
+                        </div>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+
+
+    <div class="row mb-1">
+        <h6>Experimental</h6>
+        <div class="col-12 no-gutters">
+
+            <div class="form-check">
+                <div class="input-group mb-3 position-relative">
+                    <input class="form-check-input" type="checkbox" id="EXPERIMENTAL">
+                    <label class="form-check-label" for="EXPERIMENTAL">
+                        Enable
+                    </label>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-1 d-none" id="experimental-options">
+        <h6>Experimental Options</h6>
+        <div class="col-12 no-gutters">
+            <div class="mb-3">
+                <div class="row">
+                    <small style="font-size:13px" class="text-info">
+                        *These features are not final, and may have issues.
+                    </small>
+
+                </div>
+            </div>
+
+
+            <div class="form-group">
+                <label for="blacklist_subjects">Blacklist Comment Subjects</label>
+                <div class="position-relative">
+                    <input title="BLACKLISTSUBJECTS" type="text" id="BLACKLISTSUBJECTS"
+                           class="form-control form-control-sm autosave" placeholder="Comma separated terms">
+                    <div class="valid-feedback feedback-icon">&#x2713;</div>
+                </div>
+                <small class="form-text text-muted">Hides comments whose subject partially matches any one of these
+                    terms.
+                </small>
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+    <!-- Footer -->
+    <footer class="page-footer font-small blue">
+        <hr>
+        <div class="text-center py-1">
+            <a href="https://www.plurk.com/dwtools/"><img src="../img/plurk.png" alt="[plurk.com profile] "
+                                                          style="vertical-align: text-top; border: 0; padding-right: 1px;"
+                                                          width="16" height="16"><b>dwtools</b></a>
+        </div>
+        <!-- Copyright -->
+
+    </footer>
+    <!-- Footer -->
+
+</div>
+
+</body>
+</html>

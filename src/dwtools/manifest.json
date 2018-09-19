@@ -1,8 +1,7 @@
 {
-  "update_url": "https://clients2.google.com/service/update2/crx",
   "name": "Dreamwidth Tools",
   "short_name": "DWTools",
-  "version": "4.6.0",
+  "version": "4.7.0",
   "author": "Ashley Wijnen-Riems",
   "manifest_version": 2,
   "permissions": [
@@ -10,9 +9,9 @@
     "https://api.imgur.com/*"
   ],
   "icons": {
-    "16": "DTicon16.png",
-    "48": "DTicon48.png",
-    "128": "DTicon128.png"
+    "16": "img/DTicon16.png",
+    "48": "img/DTicon48.png",
+    "128": "/imgDTicon128.png"
   },
   "description": "Unofficial Dreamwidth Tools",
   "content_scripts": [
@@ -33,27 +32,28 @@
 
       ],
       "css": [
-        "iconselect.css"
+        "css/iconselect.css",
+        "css/bootstrap.min.css"
       ],
       "js": [
-        "jquery.js",
-        "spin.js",
-        "iconselect.max.js",
-        "rangyinputs_jquery.min.js",
-        "code.js",
-        "popup.js"
+        "lib/jquery.js",
+        "lib/spin.js",
+        "lib/iconselect.max.js",
+        "lib/rangyinputs_jquery.min.js",
+        "js/code.js",
+        "js/popup.js"
       ],
       "html": [
-        "popup.html"
+        "html/popup.html"
       ]
     }
   ],
   "browser_action": {
-    "default_icon": "icon.png",
-    "default_popup": "popup.html"
+    "default_icon": "img/icon.png",
+    "default_popup": "html/popup.html"
   },
 
-  "web_accessible_resources": ["undo.png"]
+  "web_accessible_resources": ["img/undo.png"]
 
 
 }
