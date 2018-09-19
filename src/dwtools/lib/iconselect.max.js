@@ -785,7 +785,7 @@
             jQuery("#iconselector_imgur_search", jQuery.fn.iconselector_imgur.instance).bind("keyup click", h);
 
 
-            getDT(function () {
+            getFromSessionStore(function () {
                 var imgurAlbum = "https://api.imgur.com/3/album/";
                 //go through the imgur object to find the logged in account
                 var journal = "";
