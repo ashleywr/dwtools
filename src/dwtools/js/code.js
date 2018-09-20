@@ -1,85 +1,433 @@
-NewCommentPageList = '.page-links';
-OldCommentPageList = 'div.action-box div.inner > span > a';
+(function () {
+    //globals
+    var defaultDT = {
+        LAT: "<small>[ ",
+        RAT: " ]</small>",
+        TEXT: "font-family:courier new",
+        AUTOSCROLL: true,
+        IMGUR: [],
+        EXPERIMENTAL: true,
+        BLACKLIST: []
+
+    };
+    var DT = {};
+
+    var NewCommentPageList = '.page-links';
+    var OldCommentPageList = 'div.action-box div.inner > span > a';
+
+    var path = window.location.pathname;
+    var $textBox;
+    var ver;
+    var pages;
+    var page;
+    var pageList;
+    var pageBox;
+    var commentThread;
+    var nextButton;
+    var oldLastComment;
+    var isPreviewPage = false;
+
+    function saveSelection() {
+        $textBox.data("lastSelection", $textBox.getSelection());
+    }
+
+    jQuery(document).on('click', '.load_all', function (event) {
+        event.preventDefault();
+
+        jQuery(commentThread).remove();
+        jQuery(window).unbind('scroll');
+        page = 1;
+        getPage();
+
+    });
+
+    jQuery(document).on('keydown', document, function (e) {
+        if (e.ctrlKey && ( e.which === 47)) {
+            ActionTagInsert();
+        }
+    });
+
+    function addComments(data) {
+        var body = '<div id="body-mock">' + data.replace(/^[\s\S]*<body.*?>|<\/body>[\s\S]*$/g, '') + '</div>';
 
 
+        var cmtinfo_new = data.match(/var LJ_cmtinfo[\s\S]*}}/);
 
-var $textBox;
-function saveSelection() {
-    $textBox.data("lastSelection", $textBox.getSelection());
-}
+        try {
+            //needs eval because for some reason lj uses octals in numbers
+            eval(cmtinfo_new[0]);
+        }
+        catch (err) {
+            console.log("Problem eval cmtinfo.");
+        }
 
-var DT = {};
-var path = window.location.pathname;
+        var sciptToExecute = "";
+        try {
+            if (LJ_cmtinfo) {
+                for (var x in LJ_cmtinfo) {
+                    if (typeof LJ_cmtinfo[x] === 'object') {
+                        sciptToExecute += "window.LJ_cmtinfo[" + x + "] = " + JSON.stringify(LJ_cmtinfo[x]) + ";";
+                    }
+                }
 
-var ver;
-var pages;
-var page;
-var pageList;
-var pageBox;
-var commentThread;
-var nextButton;
-var oldLastComment;
-var isPreviewPage = false;
+                var rwscript = document.createElement("script");
+                rwscript.type = "text/javascript";
+                rwscript.textContent = sciptToExecute;
+                document.documentElement.appendChild(rwscript);
+                rwscript.parentNode.removeChild(rwscript);
+            }
+        }
+        catch (err) {
+            console.log("LJ_cmtinfo not defined.");
+            console.log(data);
+        }
 
-$(document).ready(function () {
+        var newPage = jQuery(body);
+        var newList = newPage.find(commentThread);
+        var oldLast = jQuery(oldLastComment);
 
-    //for imgur icons
+        oldLast.before(newList);
 
+        var newActionBox = newPage.find(pageBox).html();
+        jQuery(pageBox).html(newActionBox);
 
+    }
 
-    jQuery('[data-dwtimgsrc], .comment-content > table > tbody > tr > td > table').each(function () {
-        jQuery(this).hide();
-        jQuery(this).parents('.comment-content').find("td").each(function(){
-            jQuery(this).css({'padding': '0'});
+    function ActionTagInsert() {
+        getDT(function () {
+            var selection = $textBox.data("lastSelection");
+            $textBox.focus();
+
+            if (selection == undefined) {
+                var text = DT["LAT"] + " " + DT["RAT"];
+                text = text.replace(/^\s+|\s+$/g, '');
+                $textBox.text(text);
+            }
+            else {
+                $textBox.setSelection(selection.start, selection.end);
+                var text = $textBox.getSelection();
+                var originalText = text.text;
+
+                text = text.text.replace(/^\s+|\s+$/g, '');
+                text = DT["LAT"] + text + DT["RAT"];
+                text = text.replace(/^\s+|\s+$/g, '');
+
+                if (originalText.charAt(0) == '\n') {
+                    text = "\n" + text;
+                }
+                if (originalText.charAt(originalText.length - 1) == '\n') {
+                    text = text + '\n';
+                }
+
+                $textBox.replaceSelectedText(text);
+            }
+
         });
-        var src = jQuery(this).attr("background");
+    }
 
-        var img = jQuery(this).parents(".comment").find(".userpic img");
-        if (img.length > 0) {
-            img.css({'display':"none"}).addClass("old-img");
-            img.after("<img class='new-img' src='"+ src +"'>");
+    function getPage() {
+        if (page <= pages) {
+            jQuery(pageBox).spin('large');
+            (function () {
+                jQuery.ajax({
+                    url: path + '?page=' + page,
+                    type: 'GET',
+                    success: function (data) {
+                        addComments(data);
+                        page++;
+                        (function () {
+                            getPage();
+                        })();
+                    }
+                });
+            })(page);
         }
         else {
-            jQuery(this).parents(".comment").find(".userpic").html("<img class='new-img' src="+ src +">");
+            jQuery(pageBox).spin(false);
         }
 
-        var undo = chrome.extension.getURL('undo.png');
-        jQuery(this).parents(".comment").find(".comment-info").append("<span><img style='cursor: pointer' class='dw-undo' title='Undo the hidden icon (DWTools)' src=" + undo + "></span>");
-    //$(".comments-content > img").each(function(){ $(this).css({'margin-top':'-101px','position':'relative','float':'left'});});
-    });
+    }
 
-    var padded = false;
-    jQuery('.dw-undo').on("click", function () {
-        var ele = jQuery(this).parents(".comment").find(".comment-content > table > tbody > tr > td > table, [data-dwtimgsrc], .new-img, .old-img");
-        ele.toggle();
+    function getDT(fn = ()=> {
+    }) {
 
-        if(!padded){
-            ele.parents('.comment-content').find("td").each(function(){
-                jQuery(this).css({'padding': '.2em .5em'});
+        try {
+            chrome.storage.sync.get("savedDT", function (res) {
+                if (res == undefined || res.savedDT == undefined) {
+                    DT = $.extend({}, defaultDT);
+                    saveDT(fn);
+                }
+                else {
+                    DT = JSON.parse(res.savedDT);
+                    fn();
+                }
             });
-            padded = true;
         }
-        else{
-            ele.parents('.comment-content').find("td").each(function(){
+        catch (e) {
+            console.log(e);
+            DT = $.extend({}, defaultDT);
+            fn();
+
+        }
+
+    }
+
+    function saveDT(fn = ()=> {
+    }) {
+        try {
+            chrome.storage.sync.set({"savedDT": JSON.stringify(DT)}, function () {
+                fn();
+            });
+        }
+        catch (e) {
+            console.log(e);
+            fn();
+        }
+    }
+
+//This is for icon uploading!
+    function editIconsInsert(path) {
+
+        var box = jQuery("#uploadBox");
+        box.css({'float': 'none'});
+        box.before(('<div id="left_wrapper" style="float: left;"> <div class="highlight-box box pkg" style="width: 300px; margin: 0 15px 0 0;margin-top:2em;"> <div style="padding: 6px 12px;"><h1>Upload a batch of icons</h1> <p></p> <form enctype="multipart/form-data" action="editicons" method="post" id="uploadPic_batch"> <div class="pkg"> <p class="pkg"> <input type="radio" checked="checked" value="file" id="batch_radio_file" class="radio" name="src"> <label for="batch_radio_file">Batch Files:</label> <br> <input type="file" class="file" multiple name="batch_files" id="batch_files" size="18" style="margin: 0em 0em 0.5em 2em;"> </p> <p class="pkg" id="batch_urls_form"> <input type="radio" value="url" id="batch_radio_urls" class="radio" name="src"> <label for="batch_radio_urls">Batch URLs:</label> <br> <textarea style="z-index:1000;margin: 0em 0em 0.5em 2em;width: 240px;" id="batch_url_text"></textarea> <p class="detail">Copy and pasting multiple images is accepted.</p> </p> </div> <hr class="hr"> <input type="hidden" id="go_to" name="go_to" value="editicons"> <p class="pkg"> <label class="left" style="">Comment:</label> <br> <span class="input-wrapper"> <input type="text" maxlength="120" name="" class="text" value="" style="width: 240px;" id="comments_batch"> <p class="detail">Optional comments about the icon. Credit can go here. Will be set for all icons in batch.</p> </span> </form> <center><input style="text-align: center;" type="button" id="batch_url_upload" value="Batch upload"> </center> </div> </div> </div>'));
+        try {
+            box.prependTo(jQuery("#left_wrapper"));
+        }
+        catch (e) {
+
+        }
+
+        jQuery("#no_default_userpic").append('<input style="margin-left: 16px;" type="checkbox" id="checkAllDelete" class="checkbox" value="0"><label for="checkAllDelete">Select all delete</label>');
+
+        jQuery("#checkAllDelete, #checkAllDeleteLabel").on("click", function (e) {
+            jQuery('[id^="del_"]').each(function () {
+                jQuery(this).trigger('click');
+            });
+        });
+
+        jQuery("#batch_url_upload").on("click", function (e) {
+            e.preventDefault();
+
+            var form = jQuery("#uploadPic_batch");
+            var comment = jQuery("#comments_batch").val();
+            var formData;
+
+            form.append('<input type="text" class="text" name="make_default" style="display:none" value="0">');
+
+            if (jQuery("#batch_radio_file").prop("checked") == true) {
+                var files = jQuery("#batch_files")[0].files;
+
+                jQuery("#batch_files").prop('disabled', true);
+                formData = new FormData(form[0]);
+
+                for (var z = 0; z < files.length; z++) {
+                    formData.append('userpic_' + z, files[z]);
+
+                    var name = files[z].name.split(".");
+                    formData.append('keywords_' + z, name[0]);
+                    formData.append('comments_' + z, comment);
+                    formData.append('descriptions_' + z, '');
+                }
+
+
+            }
+            else {
+                var text = jQuery("#batch_url_text").text();
+                if (text && text.length > 0) {
+                    var uri_pattern = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/ig;
+                    var list = text.match(uri_pattern);
+
+                    var keys = [];
+                    jQuery('[id^="kw_"]').each(function (e) {
+                        keys[$(this).val()] = 1;
+                    });
+                    //var data = new FormData();
+
+
+                    for (var x = 0; x < list.length; x++) {
+                        //data.append("urlpic_" + x,list[x]);
+                        //data.append("keywords_" + x,x);
+                        //data.append("comments_" + x,"");
+                        //data.append("descriptions_" + x,"");
+                        var urlsForm = jQuery("#batch_urls_form");
+                        urlsForm.append('<input type="hidden" class="text" id="urlpic_' + x + '" name="urlpic_' + x + '"  value="' + list[x] + '">');
+
+                        var keyword = x;
+
+                        while (keys[keyword]) {
+                            keyword++;
+                        }
+                        keys[keyword] = 1;
+
+                        urlsForm.append('<input type="hidden" class="text" id="keywords_' + x + '" name="keywords_' + x + '"  value="' + keyword + '">');
+                        urlsForm.append('<input type="hidden" class="text" id="comments_' + x + '" name="comments_' + x + '"  value="' + comment + '">');
+                        urlsForm.append('<input type="hidden" class="text" id="descriptions_' + x + '" name="descriptions_' + x + '"  value="">');
+
+
+                    }
+                    jQuery("#batch_files").prop('disabled', true);
+                    formData = new FormData(form[0]);
+                }
+            }
+
+            $.ajax({
+                url: path,
+                type: 'POST',
+                data: formData,
+                async: true,
+                cache: false,
+                contentType: false,
+                processData: false,
+                mimeType: 'multipart/form-data',
+                success: function (returndata) {
+                    window.location.href = path
+                }
+            });
+
+            return true;
+        });
+
+
+        jQuery("#batch_url_text").on("paste", function (e) {
+            e.preventDefault();
+
+            // use event.originalEvent.clipboard for newer chrome versions
+            var items = (event.clipboardData || event.originalEvent.clipboardData).items;
+            // find pasted image among pasted items
+            var blob = null;
+            for (var i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf("image") === 0) {
+                    //blob = items[i].getAsFile();
+                    //console.log(blob.name);
+                }
+                else {
+                    //look for some urls
+                    if (items[i].kind === 'string') {
+                        items[i].getAsString(function (s) {
+                            var str = s.replace(/url\((.*?)\)/g, '');
+                            var uri_pattern = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/ig;
+                            var list = str.match(uri_pattern);
+
+                            var clean = "";
+                            for (var x in list) {
+                                clean += list[x] + "\n";
+                            }
+
+                            jQuery("#batch_url_text").text(clean);
+
+                        });
+                    }
+                }
+            }
+
+            //if (blob !== null) {
+            //    var reader = new FileReader();
+            //    reader.onload = function (event) {
+            //        console.log(event.target.result); // data url!
+            //    };
+            //    reader.readAsDataURL(blob);
+            //}
+
+
+        });
+
+    }
+
+    var DWSync = {
+
+        load: async function () {
+
+            return new Promise(function (resolve, reject) {
+                try {
+                    chrome.storage.sync.get("savedDT", function (res) {
+                        if (res != undefined && res.savedDT != undefined) {
+                            resolve($.extend(defaultDT, JSON.parse(res.savedDT)));
+                        }
+                        else {
+                            resolve($.extend({}, defaultDT))
+                        }
+                    });
+                }
+                catch (e) {
+                    console.log(e);
+                    resolve($.extend({}, defaultDT));
+                }
+            });
+
+        },
+
+        save: async function () {
+            return new Promise(function (resolve, reject) {
+                try {
+                    chrome.storage.sync.set({"savedDT": JSON.stringify(DT)}, function () {
+                        resolve();
+                    });
+                }
+                catch (e) {
+                    console.log(e);
+                    resolve();
+                }
+            });
+
+        }
+
+
+    };
+
+    async function initDWTools() {
+        DT = await DWSync.load();
+
+
+        //for imgur icons
+        jQuery('[data-dwtimgsrc], .comment-content > table > tbody > tr > td > table').each(function () {
+            jQuery(this).hide();
+            jQuery(this).parents('.comment-content').find("td").each(function () {
                 jQuery(this).css({'padding': '0'});
             });
-            padded = false;
-        }
-    });
+            var src = jQuery(this).attr("background");
+
+            var img = jQuery(this).parents(".comment").find(".userpic img");
+            if (img.length > 0) {
+                img.css({'display': "none"}).addClass("old-img");
+                img.after("<img class='new-img' src='" + src + "'>");
+            }
+            else {
+                jQuery(this).parents(".comment").find(".userpic").html("<img class='new-img' src=" + src + ">");
+            }
+
+            var undo = chrome.extension.getURL('undo.png');
+            jQuery(this).parents(".comment").find(".comment-info").append("<span><img style='cursor: pointer' class='dw-undo' title='Undo the hidden icon (DWTools)' src=" + undo + "></span>");
+            //$(".comments-content > img").each(function(){ $(this).css({'margin-top':'-101px','position':'relative','float':'left'});});
+        });
+
+        var padded = false;
+        jQuery('.dw-undo').on("click", function () {
+            var ele = jQuery(this).parents(".comment").find(".comment-content > table > tbody > tr > td > table, [data-dwtimgsrc], .new-img, .old-img");
+            ele.toggle();
+
+            if (!padded) {
+                ele.parents('.comment-content').find("td").each(function () {
+                    jQuery(this).css({'padding': '.2em .5em'});
+                });
+                padded = true;
+            }
+            else {
+                ele.parents('.comment-content').find("td").each(function () {
+                    jQuery(this).css({'padding': '0'});
+                });
+                padded = false;
+            }
+        });
 
 
-
-
-    //For Text insertion
-    $textBox = jQuery("#body, #commenttext");
-    $textBox.focusout(saveSelection);
-    $textBox.bind("beforedeactivate", function () {
-        saveSelection();
-        $textBox.unbind("focusout");
-    });
-
-
-    getDT(function () {
+        //For Text insertion
+        $textBox = jQuery("#body, #commenttext");
+        $textBox.focusout(saveSelection);
+        $textBox.bind("beforedeactivate", function () {
+            saveSelection();
+            $textBox.unbind("focusout");
+        });
 
 
         if (jQuery(NewCommentPageList).length <= 0) {
@@ -103,7 +451,7 @@ $(document).ready(function () {
             oldLastComment = ".bottomcomment";
         }
 
-//Adding buttons
+        //Adding buttons
         var subject = jQuery("#subject");
         if (subject.length == 0) {
             isPreviewPage = true;
@@ -202,318 +550,20 @@ $(document).ready(function () {
                 }
             });
         }
-    });
-
-    //Check if icon page
-    if (path.indexOf("manage/icons") > -1) {
-        editIconsInsert("icons");
-    }
-    if (path.indexOf("editicons") > -1) {
-        editIconsInsert("editicons");
-    }
 
 
-
-
-});
-
-jQuery(document).on('click', '.load_all', function (event) {
-    event.preventDefault();
-
-    jQuery(commentThread).remove();
-    jQuery(window).unbind('scroll');
-    page = 1;
-    getPage();
-
-});
-
-jQuery(document).on('keydown', document, function (e) {
-    if (e.ctrlKey && ( e.which === 47)) {
-        ActionTagInsert();
-    }
-});
-
-function addComments(data) {
-    var body = '<div id="body-mock">' + data.replace(/^[\s\S]*<body.*?>|<\/body>[\s\S]*$/g, '') + '</div>';
-
-
-    var cmtinfo_new = data.match(/var LJ_cmtinfo[\s\S]*}}/);
-
-    try {
-        //needs eval because for some reason lj uses octals in numbers
-        eval(cmtinfo_new[0]);
-    }
-    catch (err) {
-        console.log("Problem eval cmtinfo.");
-    }
-
-    var sciptToExecute = "";
-    try {
-        if (LJ_cmtinfo) {
-            for (var x in LJ_cmtinfo) {
-                if (typeof LJ_cmtinfo[x] === 'object') {
-                    sciptToExecute += "window.LJ_cmtinfo[" + x + "] = " + JSON.stringify(LJ_cmtinfo[x]) + ";";
-                }
-            }
-
-            var rwscript = document.createElement("script");
-            rwscript.type = "text/javascript";
-            rwscript.textContent = sciptToExecute;
-            document.documentElement.appendChild(rwscript);
-            rwscript.parentNode.removeChild(rwscript);
+        //Check if icon page
+        if (path.indexOf("manage/icons") > -1) {
+            editIconsInsert("icons");
         }
-    }
-    catch(err) {
-            console.log("LJ_cmtinfo not defined.");
-            console.log(data);
-    }
-
-    var newPage = jQuery(body);
-    var newList = newPage.find(commentThread);
-    var oldLast = jQuery(oldLastComment);
-
-    oldLast.before(newList);
-
-    var newActionBox = newPage.find(pageBox).html();
-    jQuery(pageBox).html(newActionBox);
-
-}
-
-function ActionTagInsert() {
-    getDT(function () {
-        var selection = $textBox.data("lastSelection");
-        $textBox.focus();
-
-        if (selection == undefined) {
-            var text = DT["LAT"] + " " + DT["RAT"];
-            text = text.replace(/^\s+|\s+$/g, '');
-            $textBox.text(text);
-        }
-        else {
-            $textBox.setSelection(selection.start, selection.end);
-            var text = $textBox.getSelection();
-            var originalText = text.text;
-
-            text = text.text.replace(/^\s+|\s+$/g, '');
-            text = DT["LAT"] + text + DT["RAT"];
-            text = text.replace(/^\s+|\s+$/g, '');
-
-            if (originalText.charAt(0) == '\n') {
-                text = "\n" + text;
-            }
-            if (originalText.charAt(originalText.length-1) == '\n') {
-                text = text + '\n';
-            }
-
-            $textBox.replaceSelectedText(text);
+        if (path.indexOf("editicons") > -1) {
+            editIconsInsert("editicons");
         }
 
-    });
-}
-
-function getPage() {
-    if (page <= pages) {
-        jQuery(pageBox).spin('large');
-        (function () {
-            jQuery.ajax({
-                url: path + '?page=' + page,
-                type: 'GET',
-                success: function (data) {
-                    addComments(data);
-                    page++;
-                    (function () {
-                        getPage();
-                    })();
-                }
-            });
-        })(page);
-    }
-    else {
-        jQuery(pageBox).spin(false);
     }
 
-}
 
-function getDT(fn) {
-    chrome.storage.sync.get("savedDT", function (res) {
-        if (res == undefined) {
-            DT = {
-                LAT: "<small>[ ",
-                RAT: " ]</small>",
-                TEXT: "font-family:courier new",
-                AUTOSCROLL: true,
-                IMGUR: []
-            };
-            saveDT(fn);
-        }
-        else {
-            DT = JSON.parse(res.savedDT);
-            fn();
-        }
-    });
-}
-
-function saveDT(fn) {
-    chrome.storage.sync.set({"savedDT": JSON.stringify(DT)}, function () {
-        fn();
-    });
-}
-
-function htmlEscape(str) {
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
-}
+    initDWTools();
 
 
-//This is for icon uploading!
-function editIconsInsert(path) {
-
-    var box = jQuery("#uploadBox");
-    box.css({'float': 'none'});
-    box.before(('<div id="left_wrapper" style="float: left;"> <div class="highlight-box box pkg" style="width: 300px; margin: 0 15px 0 0;margin-top:2em;"> <div style="padding: 6px 12px;"><h1>Upload a batch of icons</h1> <p></p> <form enctype="multipart/form-data" action="editicons" method="post" id="uploadPic_batch"> <div class="pkg"> <p class="pkg"> <input type="radio" checked="checked" value="file" id="batch_radio_file" class="radio" name="src"> <label for="batch_radio_file">Batch Files:</label> <br> <input type="file" class="file" multiple name="batch_files" id="batch_files" size="18" style="margin: 0em 0em 0.5em 2em;"> </p> <p class="pkg" id="batch_urls_form"> <input type="radio" value="url" id="batch_radio_urls" class="radio" name="src"> <label for="batch_radio_urls">Batch URLs:</label> <br> <textarea style="z-index:1000;margin: 0em 0em 0.5em 2em;width: 240px;" id="batch_url_text"></textarea> <p class="detail">Copy and pasting multiple images is accepted.</p> </p> </div> <hr class="hr"> <input type="hidden" id="go_to" name="go_to" value="editicons"> <p class="pkg"> <label class="left" style="">Comment:</label> <br> <span class="input-wrapper"> <input type="text" maxlength="120" name="" class="text" value="" style="width: 240px;" id="comments_batch"> <p class="detail">Optional comments about the icon. Credit can go here. Will be set for all icons in batch.</p> </span> </form> <center><input style="text-align: center;" type="button" id="batch_url_upload" value="Batch upload"> </center> </div> </div> </div>'));
-    try {
-        box.prependTo(jQuery("#left_wrapper"));
-    }
-    catch (e) {
-
-    }
-
-    jQuery("#no_default_userpic").append('<input style="margin-left: 16px;" type="checkbox" id="checkAllDelete" class="checkbox" value="0"><label for="checkAllDelete">Select all delete</label>');
-
-    jQuery("#checkAllDelete, #checkAllDeleteLabel").on("click", function (e) {
-        jQuery('[id^="del_"]').each(function () {
-            jQuery(this).trigger('click');
-        });
-    });
-
-    jQuery("#batch_url_upload").on("click", function (e) {
-        e.preventDefault();
-
-        var form = jQuery("#uploadPic_batch");
-        var comment = jQuery("#comments_batch").val();
-        var formData;
-
-        form.append('<input type="text" class="text" name="make_default" style="display:none" value="0">');
-
-        if (jQuery("#batch_radio_file").prop("checked") == true) {
-            var files = jQuery("#batch_files")[0].files;
-
-            jQuery("#batch_files").prop('disabled', true);
-            formData = new FormData(form[0]);
-
-            for (var z = 0; z < files.length; z++) {
-                formData.append('userpic_' + z, files[z]);
-
-                var name = files[z].name.split(".");
-                formData.append('keywords_' + z, name[0]);
-                formData.append('comments_' + z, comment);
-                formData.append('descriptions_' + z, '');
-            }
-
-
-        }
-        else {
-            var text = jQuery("#batch_url_text").text();
-            if (text && text.length > 0) {
-                var uri_pattern = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/ig;
-                var list = text.match(uri_pattern);
-
-                var keys = [];
-                jQuery('[id^="kw_"]').each(function (e) {
-                    keys[$(this).val()] = 1;
-                });
-                //var data = new FormData();
-
-
-                for (var x = 0; x < list.length; x++) {
-                    //data.append("urlpic_" + x,list[x]);
-                    //data.append("keywords_" + x,x);
-                    //data.append("comments_" + x,"");
-                    //data.append("descriptions_" + x,"");
-                    var urlsForm = jQuery("#batch_urls_form");
-                    urlsForm.append('<input type="hidden" class="text" id="urlpic_' + x + '" name="urlpic_' + x + '"  value="' + list[x] + '">');
-
-                    var keyword = x;
-
-                    while (keys[keyword]) {
-                        keyword++;
-                    }
-                    keys[keyword] = 1;
-
-                    urlsForm.append('<input type="hidden" class="text" id="keywords_' + x + '" name="keywords_' + x + '"  value="' + keyword + '">');
-                    urlsForm.append('<input type="hidden" class="text" id="comments_' + x + '" name="comments_' + x + '"  value="' + comment + '">');
-                    urlsForm.append('<input type="hidden" class="text" id="descriptions_' + x + '" name="descriptions_' + x + '"  value="">');
-
-
-                }
-                jQuery("#batch_files").prop('disabled', true);
-                formData = new FormData(form[0]);
-            }
-        }
-
-        $.ajax({
-            url: path,
-            type: 'POST',
-            data: formData,
-            async: true,
-            cache: false,
-            contentType: false,
-            processData: false,
-            mimeType: 'multipart/form-data',
-            success: function (returndata) {
-                window.location.href = path
-            }
-        });
-
-        return true;
-    });
-
-
-    jQuery("#batch_url_text").on("paste", function (e) {
-        e.preventDefault();
-
-        // use event.originalEvent.clipboard for newer chrome versions
-        var items = (event.clipboardData || event.originalEvent.clipboardData).items;
-        // find pasted image among pasted items
-        var blob = null;
-        for (var i = 0; i < items.length; i++) {
-            if (items[i].type.indexOf("image") === 0) {
-                //blob = items[i].getAsFile();
-                //console.log(blob.name);
-            }
-            else {
-                //look for some urls
-                if (items[i].kind === 'string') {
-                    items[i].getAsString(function (s) {
-                        var str = s.replace(/url\((.*?)\)/g, '');
-                        var uri_pattern = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/ig;
-                        var list = str.match(uri_pattern);
-
-                        var clean = "";
-                        for (var x in list) {
-                            clean += list[x] + "\n";
-                        }
-
-                        jQuery("#batch_url_text").text(clean);
-
-                    });
-                }
-            }
-        }
-
-        //if (blob !== null) {
-        //    var reader = new FileReader();
-        //    reader.onload = function (event) {
-        //        console.log(event.target.result); // data url!
-        //    };
-        //    reader.readAsDataURL(blob);
-        //}
-
-
-    });
-
-}
+})();

@@ -11,11 +11,12 @@
   "icons": {
     "16": "img/DTicon16.png",
     "48": "img/DTicon48.png",
-    "128": "/imgDTicon128.png"
+    "128": "img/DTicon128.png"
   },
   "description": "Unofficial Dreamwidth Tools",
   "content_scripts": [
     {
+      "run_at": "document_end",
       "matches": [
         "http://*.dreamwidth.org/*.html*",
         "http://www.dreamwidth.org/talkpost_do",
@@ -32,19 +33,15 @@
 
       ],
       "css": [
-        "css/iconselect.css",
-        "css/bootstrap.min.css"
+        "css/iconselect.css"
       ],
       "js": [
         "lib/jquery.js",
         "lib/spin.js",
         "lib/iconselect.max.js",
         "lib/rangyinputs_jquery.min.js",
-        "js/code.js",
-        "js/popup.js"
-      ],
-      "html": [
-        "html/popup.html"
+        "lib/blacklist.js",
+        "js/code.js"
       ]
     }
   ],
