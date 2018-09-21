@@ -30,6 +30,14 @@
 
     }
 
+    var delay = (function () {
+        var timer = 0;
+        return function (callback, ms, that) {
+            clearTimeout(timer);
+            timer = setTimeout(callback.bind(that), ms);
+        };
+    })();
+
 
     //page sections
     var CustomTextButtonsSection = (function () {
@@ -274,13 +282,25 @@
             });
 
             //blacklist subjects
-            $("#BLACKLIST").val(DT["BLACKLIST"].join(", "));
+            try{
+                str = DT["BLACKLIST"].join(", ");
+                $("#BLACKLIST").val(str);
+            }
+            catch(e){
+                DT["BLACKLIST"] = [];
+            }
 
-            ele.on('keyup', '#BLACKLIST', function () {
-                var arr = $(this).val();
-                arr = arr.split(/[^a-zA-Z-]+/g).filter(v=>v);
-                DT['BLACKLIST'].push(arr);
-                autosaveInput($(this), arr);
+
+            $("#BLACKLIST").on('keyup', function () {
+                var self = $(this);
+                delay(function () {
+                    var str = self.val();
+                    var arr = str.split(",").map(function(item) {
+                        return item.trim();
+                    });
+                    autosaveInput(self, arr);
+                }, 500);
+
             });
         };
 

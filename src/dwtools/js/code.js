@@ -375,8 +375,9 @@
 
     };
 
-    async function initDWTools() {
-        DT = await DWSync.load();
+    function initDWTools() {
+
+
 
 
         //for imgur icons
@@ -560,10 +561,33 @@
             editIconsInsert("editicons");
         }
 
+        //add blacklist stuff
+        $(".dwtools-hidden a").on("click", function(e){
+            e.preventDefault();
+            $(".hidden-" + $(this).attr("data-hiddenId")).show();
+            $(this).parent().remove();
+        });
+
     }
 
+    async function docStart(){
+        DT = await DWSync.load();
 
-    initDWTools();
+        if(DT['BLACKLIST'].length > 0) {
+
+            runBlackList(DT);
+        }
+    }
+    docStart();
+
+    $(document).ready(function(){
+        initDWTools();
+    });
+
+
+
+
+
 
 
 })();
