@@ -7,8 +7,12 @@
         AUTOSCROLL: true,
         IMGUR: [],
         EXPERIMENTAL: true,
-        BLACKLIST: []
-
+        BLACKLIST: [],
+        BLACKLISTMSG: true,
+        BLACKLISTDOMAIN: [],
+        BLACKLISTJOURNALS:[],
+        BLACKLISTJOURNALDOMAINS:[],
+        BLACKLISTJOURNALMSG: true
     };
     var DT = {};
 
@@ -212,7 +216,8 @@
                             },
                             type: "GET",
                             url: 'https://api.imgur.com/3/album/' + validate[1],
-                            error: function () {
+                            error: function (res) {
+                                console.log(res);
                                 //validate[2] = false;
                                 //$("#album-check").css("display", "inline");
                                 imgurId.addClass("is-invalid");
@@ -259,16 +264,17 @@
 
         var render = function () {
             var ele = jQuery("#EXPERIMENTAL-SECTION");
+            var exEle = $("#EXPERIMENTAL");
             if (DT["EXPERIMENTAL"]) {
-                $("#EXPERIMENTAL").prop("checked", true);
+                exEle.prop("checked", true);
                 $("#experimental-options").removeClass('d-none');
 
             }
             else {
-                $("#EXPERIMENTAL").prop("checked", false);
+                exEle.prop("checked", false);
             }
 
-            jQuery("#EXPERIMENTAL").on('click', function () {
+            exEle.on('click', function () {
                 DT["EXPERIMENTAL"] = !DT["EXPERIMENTAL"];
 
                 if (DT["EXPERIMENTAL"]) {
@@ -281,17 +287,18 @@
                 DWSync.save();
             });
 
-            //blacklist subjects
+            //blacklist subject terms
+            var blacklist = $("#BLACKLIST");
             try{
-                str = DT["BLACKLIST"].join(", ");
-                $("#BLACKLIST").val(str);
+                var str = DT["BLACKLIST"].join(", ");
+                blacklist.val(str);
             }
             catch(e){
                 DT["BLACKLIST"] = [];
             }
 
 
-            $("#BLACKLIST").on('keyup', function () {
+            blacklist.on('keyup', function () {
                 var self = $(this);
                 delay(function () {
                     var str = self.val();
@@ -302,6 +309,113 @@
                 }, 500);
 
             });
+
+
+            //blacklist subject msg
+            var ele2 = jQuery("#BLACKLISTMSG");
+            if (DT["BLACKLISTMSG"]) {
+                ele2.prop("checked", true);
+            }
+            else {
+                ele2.prop("checked", false);
+            }
+
+            ele2.on('click', function () {
+                DT["BLACKLISTMSG"] = !!ele2.prop("checked");
+
+                DWSync.save();
+            });
+
+            //blacklist subject domains
+            var blacklistdomains = $("#BLACKLISTDOMAIN");
+            try{
+                var str = DT["BLACKLISTDOMAIN"].join(", ");
+                blacklistdomains.val(str);
+            }
+            catch(e){
+                DT["BLACKLISTDOMAIN"] = [];
+            }
+
+
+            blacklistdomains.on('keyup', function () {
+                var self = $(this);
+                delay(function () {
+                    var str = self.val();
+                    var arr = str.split(",").map(function(item) {
+                        return item.trim();
+                    });
+                    autosaveInput(self, arr);
+                }, 500);
+
+            });
+
+
+
+
+            //do it again for journals
+            //blacklist subject terms
+            var blacklistjournals = $("#BLACKLISTJOURNALS");
+            try{
+                var str = DT["BLACKLISTJOURNALS"].join(", ");
+                blacklistjournals.val(str);
+            }
+            catch(e){
+                DT["BLACKLISTJOURNALS"] = [];
+            }
+
+
+            blacklistjournals.on('keyup', function () {
+                var self = $(this);
+                delay(function () {
+                    var str = self.val();
+                    var arr = str.split(",").map(function(item) {
+                        return item.trim();
+                    });
+                    autosaveInput(self, arr);
+                }, 500);
+
+            });
+
+
+            //blacklist subject msg
+            var blacklistjournalmsg = jQuery("#BLACKLISTJOURNALMSG");
+            if (DT["BLACKLISTJOURNALMSG"]) {
+                blacklistjournalmsg.prop("checked", true);
+            }
+            else {
+                blacklistjournalmsg.prop("checked", false);
+            }
+
+            blacklistjournalmsg.on('click', function () {
+                DT["BLACKLISTJOURNALMSG"] = !!blacklistjournalmsg.prop("checked");
+
+                DWSync.save();
+            });
+
+            //blacklist subject domains
+            var blacklistjournaldomains = $("#BLACKLISTJOURNALDOMAINS");
+            try{
+                var str = DT["BLACKLISTJOURNALDOMAINS"].join(", ");
+                blacklistjournaldomains.val(str);
+            }
+            catch(e){
+                DT["BLACKLISTJOURNALDOMAINS"] = [];
+            }
+
+
+            blacklistjournaldomains.on('keyup', function () {
+                var self = $(this);
+                delay(function () {
+                    var str = self.val();
+                    var arr = str.split(",").map(function(item) {
+                        return item.trim();
+                    });
+                    autosaveInput(self, arr);
+                }, 500);
+
+            });
+
+
         };
 
         return {

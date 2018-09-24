@@ -16,7 +16,7 @@
   "description": "Unofficial Dreamwidth Tools",
   "content_scripts": [
     {
-      "run_at": "document_start",
+//      "run_at": "document_start",
       "matches": [
         "http://*.dreamwidth.org/*.html*",
         "http://www.dreamwidth.org/talkpost_do",

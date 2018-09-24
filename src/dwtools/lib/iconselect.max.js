@@ -785,7 +785,39 @@
             jQuery("#iconselector_imgur_search", jQuery.fn.iconselector_imgur.instance).bind("keyup click", h);
 
 
-            getDT(function () {
+            function getDT(fn) {
+                var defaultDT = {
+                    LAT: "<small>[ ",
+                    RAT: " ]</small>",
+                    TEXT: "font-family:courier new",
+                    AUTOSCROLL: true,
+                    IMGUR: [],
+                    EXPERIMENTAL: true,
+                    BLACKLIST: [],
+                    BLACKLISTMSG: true,
+                    BLACKLISTDOMAIN: [],
+                    BLACKLISTJOURNALS:[],
+                    BLACKLISTJOURNALDOMAINS:[],
+                    BLACKLISTJOURNALMSG: true
+                };
+                try {
+                    chrome.storage.sync.get("savedDT", function (res) {
+                        if (res != undefined && res.savedDT != undefined) {
+                            fn($.extend(defaultDT, JSON.parse(res.savedDT)));
+                        }
+                        else {
+                            fn($.extend({}, defaultDT))
+                        }
+                    });
+                }
+                catch (e) {
+                    console.log(e);
+                    fn($.extend({}, defaultDT));
+                }
+            }
+
+            getDT(function (dt) {
+                DT = dt;
                 var imgurAlbum = "https://api.imgur.com/3/album/";
                 //go through the imgur object to find the logged in account
                 var journal = "";

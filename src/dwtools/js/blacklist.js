@@ -1,11 +1,176 @@
 function runBlackList(DT) {
-
     //keeps a id to be able to map to eventlisteners
     HiddenThreadId = 0;
-    BlackListComments();
+    var BlackListJournals;
+    var checkJournals = false;
+    var checkBlacklist = false;
 
+    try {
+
+        var url = window.location.href;
+        for (var x in DT['BLACKLISTDOMAIN']) {
+            if (matchRuleShort(url, DT['BLACKLISTDOMAIN'][x])) {
+                checkBlacklist = true;
+                break;
+            }
+        }
+
+        for (var z in DT['BLACKLISTJOURNALDOMAINS']) {
+            if (matchRuleShort(url, DT['BLACKLISTJOURNALDOMAINS'][x])) {
+                checkJournals = true;
+                BlackListJournals = DT['BLACKLISTJOURNALS'].reduce(function (map, obj) {
+                    map[obj] = true;
+                    return map;
+                }, {});
+                break;
+            }
+        }
+
+        if (checkJournals || checkBlacklist) {
+            BlackListCommentsJquery();
+        }
+
+    }
+    catch (e) {
+        console.log(e);
+    }
+
+    function matchRuleShort(str, rule) {
+        return new RegExp("^" + rule.split("*").join(".*") + "$").test(str);
+    }
+
+
+    function getLJCommentsObj() {
+        var query = "var LJ_cmtinfo = ";
+
+        var scripts = document.getElementsByTagName("script");
+        for (var i = 0; i < scripts.length; ++i) {
+            var text = scripts[i].innerHTML;
+            var index = text.indexOf(query);
+            if (index != -1) {
+                var json = text.substring(index + query.length);
+                eval('ljComments = ' + json);
+
+            }
+        }
+    }
+
+    function BlackListCommentsJquery() {
+        var hideThreadDepth = 1;
+        var currentDepth = 1;
+        var comments = document.querySelectorAll(".comment-thread");
+        for (var x = 0; x < comments.length; x++) {
+            var commentTop = comments[x];
+            if (commentTop.classList.contains('processed')) {
+                continue;
+            }
+
+
+            var comment = commentTop.firstElementChild;
+
+            var classname = commentTop.getAttribute('class').split(' ')[2];
+            classname = classname.substr(14);
+            currentDepth = parseInt(classname);
+
+            commentTop.classList.add('processed');
+            //check if this comment is higher than the hideThreadDepth, if so hide it too
+            if (currentDepth > hideThreadDepth) {
+                comment.style.display = 'none';
+                comment.classList.add("hidden-" + HiddenThreadId.toString());
+                continue;
+            }
+
+            var journal = comment.querySelector(".ljuser").getAttribute("lj:user");
+            if (checkJournals && BlackListJournals[journal] == true) {
+                if (DT['BLACKLISTJOURNALMSG']) {
+                    commentTop.appendChild(addMsg(journal));
+                }
+                comment.style.display = 'none';
+                comment.classList.add("hidden-" + HiddenThreadId.toString());
+                hideThreadDepth = currentDepth;
+            }
+
+            else if (commentTop.classList.contains("comment-depth-1")) {
+                hideThreadDepth = 1;
+
+                if (checkBlacklist) {
+                    var id = comment.getAttribute("id").split("cmt")[1];
+                    var titleElement = comment.querySelector(".comment-title");
+                    var title = getText(titleElement);
+
+
+                    var loaded = (comment.querySelector(".full") !== null);
+
+                    var info = {};
+                    info['element'] = comment;
+                    info['id'] = id;
+                    info['title'] = title;
+                    info['loaded'] = loaded;
+
+
+                    if (id !== undefined) {
+                        // none of this comment's ancestors were blocked
+                        //var reasons = checkFilter(info, filterSettings);
+
+
+                        var searchable = info['title'];
+
+                        //var reModifiers = (filterSettings['case-sensitive'] ? '' : 'i');
+                        var filterList = DT['BLACKLIST'];
+                        var matches = [];
+                        for (var i = 0; i < filterList.length; ++i) {
+                            var reText = filterList[i];
+
+                            var pattern = new RegExp(reText, 'i');
+                            if (pattern.test(searchable)) {
+                                matches.push(filterList[i]);
+                            }
+                        }
+
+                        if (matches.length !== 0) {
+                            //hideThread(info, reasons, filterSettings['clear-identifiers'], hiddenComments);
+
+                            comment.style.display = 'none';
+                            comment.classList.add("hidden-" + HiddenThreadId.toString());
+
+                            if (DT['BLACKLISTMSG']) {
+                                commentTop.appendChild(addMsg(matches.join(', ')));
+                            }
+
+                            hideThreadDepth = currentDepth;
+
+                        }
+                    }
+                }
+
+            }
+
+
+        }
+
+    }
+
+    function addMsg(reasons) {
+        var blocked = document.createElement("div");
+        blocked.className = "dwtools-hidden";
+
+
+        blocked.textContent = `Thread is hidden by dwtools blacklist matching: [${reasons}] `;
+
+        var link = document.createElement("a");
+        link.href = "javascript:void(0)";
+        link.setAttribute("data-hiddenId", HiddenThreadId.toString());
+        link.innerHTML = "(Show this comment anyway)";
+
+        blocked.appendChild(link);
+        return blocked;
+
+    }
 
     function BlackListComments() {
+
+        //need to get the ljcomments object
+
         var selector = ".comment-thread";
         // in case the content script was injected after the page is partially loaded
         replace(document.querySelectorAll(selector));
@@ -164,9 +329,6 @@ function runBlackList(DT) {
         return result;
     }
 
-// Chrome pre-34
-    if (!Element.prototype.matches)
-        Element.prototype.matches = Element.prototype.webkitMatchesSelector;
-
-
 }
+
+

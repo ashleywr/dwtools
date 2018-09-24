@@ -57,6 +57,13 @@
             border-color: red;
         }
 
+        .section {
+            background: white;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
 
     </style>
 
@@ -73,7 +80,7 @@
     <hr>
     <!--</div>-->
 
-    <div class="row mb-1" id="ACTION-SECTION">
+    <div class="row mb-1 section" id="ACTION-SECTION">
 
         <h6>Action Tag</h6>
         <div class="col-12">
@@ -117,7 +124,7 @@
         </div>
     </div>
 
-    <div class="row mb-2" id="TEXT-SECTION">
+    <div class="row mb-2 section" id="TEXT-SECTION">
 
         <h6>Text Tags Style</h6>
         <div class="col-12 no-gutters">
@@ -141,7 +148,7 @@
     </div>
 
 
-    <div class="row mb-1" id="AUTOSCROLL-SECTION">
+    <div class="row mb-1 section" id="AUTOSCROLL-SECTION">
         <h6>Autoscroll Comment Pages</h6>
         <div class="col-12 no-gutters">
 
@@ -157,7 +164,7 @@
         </div>
     </div>
 
-    <div class="row mb-1" id="IMGUR-SECTION">
+    <div class="row mb-1 section" id="IMGUR-SECTION">
         <h6>Imgur Albums</h6>
         <div class="col-12 no-gutters">
             <div class="mb-2">
@@ -212,10 +219,13 @@
     </div>
 
 
-    <div class="row mb-1" id="EXPERIMENTAL-SECTION">
+    <div class="row mb-1 section" id="EXPERIMENTAL-SECTION">
         <h6>Experimental</h6>
         <div class="col-12 no-gutters">
 
+            <small style="font-size:13px" class="text-info">
+                *These features are not final, and may have issues.
+            </small>
             <div class="form-check">
                 <div class="input-group mb-3 position-relative">
                     <input class="form-check-input" type="checkbox" id="EXPERIMENTAL">
@@ -227,21 +237,13 @@
             </div>
 
 
-            <div class="row mb-1 d-none" id="experimental-options">
-                <h6>Experimental Options</h6>
+            <div id="experimental-options" class="d-none">
+            <div class="row mb-3 section" id="BLACKLIST-SUBJECTS-SECTION">
+                <h6>Blacklist Subjects Options</h6>
                 <div class="col-12 no-gutters">
-                    <div class="mb-3">
-                        <div class="row">
-                            <small style="font-size:13px" class="text-info">
-                                *These features are not final, and may have issues.
-                            </small>
-
-                        </div>
-                    </div>
-
 
                     <div class="form-group">
-                        <label for="blacklist_subjects">Blacklist Comment Subjects</label>
+                        <label for="BLACKLIST">Blacklist Comment Subjects</label>
                         <div class="position-relative">
                             <input title="BLACKLIST" type="text" id="BLACKLIST"
                                    class="form-control form-control-sm autosave" placeholder="Comma separated terms">
@@ -251,12 +253,82 @@
                             terms.
                         </small>
                     </div>
+                    <div class="form-group">
+                        <label for="BLACKLISTDOMAIN">Blacklist Communities</label>
+                        <div class="position-relative">
+                            <input title="BLACKLISTDOMAIN" type="text" id="BLACKLISTDOMAIN"
+                                   class="form-control form-control-sm autosave" placeholder="Comma separated urls">
+                            <div class="valid-feedback feedback-icon">&#x2713;</div>
+                        </div>
+                        <small class="form-text text-muted">Use *.dreamwidth.org/* for all pages, or put in communities separately.
+                            terms.
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label for="BLACKLISTMSG">Blacklist Explain Box</label>
+                        <div class="form-check input-group position-relative">
+                            <input class="form-check-input" type="checkbox" id="BLACKLISTMSG">
+                            <label class="form-check-label" for="BLACKLISTMSG">
+                                Enable
+                            </label>
+
+                        </div>
+                        <small class="form-text text-muted">If disabled comments will be completely removed without a trace.
+                        </small>
+
+                    </div>
 
                 </div>
 
 
             </div>
 
+            <div class="row mb-3 section" id="BLACKLIST-JOURNALS-SECTION">
+                <h6>Blacklist Journals Options</h6>
+                <div class="col-12 no-gutters">
+
+
+                    <div class="form-group">
+                        <label for="BLACKLISTJOURNALS">Blacklist Journals</label>
+                        <div class="position-relative">
+                            <input title="BLACKLISTJOURNALS" type="text" id="BLACKLISTJOURNALS"
+                                   class="form-control form-control-sm autosave" placeholder="Comma separated journals">
+                            <div class="valid-feedback feedback-icon">&#x2713;</div>
+                        </div>
+                        <small class="form-text text-muted">Hides comments by these journals
+                            terms.
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label for="BLACKLISTJOURNALDOMAINS">Blacklist Communities</label>
+                        <div class="position-relative">
+                            <input title="BLACKLISTJOURNALDOMAINS" type="text" id="BLACKLISTJOURNALDOMAINS"
+                                   class="form-control form-control-sm autosave" placeholder="Comma separated urls">
+                            <div class="valid-feedback feedback-icon">&#x2713;</div>
+                        </div>
+                        <small class="form-text text-muted">Use *.dreamwidth.org/* for all pages, or put in communities separately.
+                            terms.
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label for="BLACKLISTJOURNALMSG">Blacklist Explain Box</label>
+                        <div class="form-check input-group position-relative">
+                            <input class="form-check-input" type="checkbox" id="BLACKLISTJOURNALMSG">
+                            <label class="form-check-label" for="BLACKLISTJOURNALMSG">
+                                Enable
+                            </label>
+
+                        </div>
+                        <small class="form-text text-muted">If disabled comments will be completely removed without a trace.
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+            </div>
+            </div>
         </div>
 
 

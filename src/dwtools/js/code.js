@@ -91,6 +91,11 @@
         var newActionBox = newPage.find(pageBox).html();
         jQuery(pageBox).html(newActionBox);
 
+        if (DT['EXPERIMENTAL'] && DT['BLACKLIST'].length > 0) {
+            runBlackList(DT);
+        }
+
+
     }
 
     function ActionTagInsert() {
@@ -126,7 +131,7 @@
     }
 
     function getPage() {
-        if (page <= pages) {
+        if (page <= pages-1) {
             jQuery(pageBox).spin('large');
             (function () {
                 jQuery.ajax({
@@ -185,12 +190,12 @@
         }
     }
 
-//This is for icon uploading!
+    //This is for icon uploading!
     function editIconsInsert(path) {
 
         var box = jQuery("#uploadBox");
         box.css({'float': 'none'});
-        box.before(('<div id="left_wrapper" style="float: left;"> <div class="highlight-box box pkg" style="width: 300px; margin: 0 15px 0 0;margin-top:2em;"> <div style="padding: 6px 12px;"><h1>Upload a batch of icons</h1> <p></p> <form enctype="multipart/form-data" action="editicons" method="post" id="uploadPic_batch"> <div class="pkg"> <p class="pkg"> <input type="radio" checked="checked" value="file" id="batch_radio_file" class="radio" name="src"> <label for="batch_radio_file">Batch Files:</label> <br> <input type="file" class="file" multiple name="batch_files" id="batch_files" size="18" style="margin: 0em 0em 0.5em 2em;"> </p> <p class="pkg" id="batch_urls_form"> <input type="radio" value="url" id="batch_radio_urls" class="radio" name="src"> <label for="batch_radio_urls">Batch URLs:</label> <br> <textarea style="z-index:1000;margin: 0em 0em 0.5em 2em;width: 240px;" id="batch_url_text"></textarea> <p class="detail">Copy and pasting multiple images is accepted.</p> </p> </div> <hr class="hr"> <input type="hidden" id="go_to" name="go_to" value="editicons"> <p class="pkg"> <label class="left" style="">Comment:</label> <br> <span class="input-wrapper"> <input type="text" maxlength="120" name="" class="text" value="" style="width: 240px;" id="comments_batch"> <p class="detail">Optional comments about the icon. Credit can go here. Will be set for all icons in batch.</p> </span> </form> <center><input style="text-align: center;" type="button" id="batch_url_upload" value="Batch upload"> </center> </div> </div> </div>'));
+        box.before(('<div id="left_wrapper" style="float: left;"> <div class="highlight-box box pkg" style="width: 300px; margin: 0 15px 0 0;margin-top:2em;"> <div style="padding: 6px 12px;"><h1>Upload a batch of icons</h1><small>[by dwtools]</small> <p></p> <form enctype="multipart/form-data" action="editicons" method="post" id="uploadPic_batch"> <div class="pkg"> <p class="pkg"> <input type="radio" checked="checked" value="file" id="batch_radio_file" class="radio" name="src"> <label for="batch_radio_file">Batch Files:</label> <br> <input type="file" class="file" multiple name="batch_files" id="batch_files" size="18" style="margin: 0em 0em 0.5em 2em;"> </p> <p class="pkg" id="batch_urls_form"> <input type="radio" value="url" id="batch_radio_urls" class="radio" name="src"> <label for="batch_radio_urls">Batch URLs:</label> <br> <textarea style="z-index:1000;margin: 0em 0em 0.5em 2em;width: 240px;" id="batch_url_text"></textarea> <p class="detail">Copy and pasting multiple images is accepted.</p> </p> </div> <hr class="hr"> <input type="hidden" id="go_to" name="go_to" value="editicons"> <p class="pkg"> <label class="left" style="">Comment:</label> <br> <span class="input-wrapper"> <input type="text" maxlength="120" name="" class="text" value="" style="width: 240px;" id="comments_batch"> <p class="detail">Optional comments about the icon. Credit can go here. Will be set for all icons in batch.</p> </span> </form> <center><input style="text-align: center;" type="button" id="batch_url_upload" value="Batch upload"> </center> </div> </div> </div>'));
         try {
             box.prependTo(jQuery("#left_wrapper"));
         }
@@ -377,10 +382,8 @@
 
     function initDWTools() {
 
-
-
-
-        //for imgur icons
+        //for imgur icons in line
+        //TODO: make experimental
         jQuery('[data-dwtimgsrc], .comment-content > table > tbody > tr > td > table').each(function () {
             jQuery(this).hide();
             jQuery(this).parents('.comment-content').find("td").each(function () {
@@ -403,7 +406,7 @@
         });
 
         var padded = false;
-        jQuery('.dw-undo').on("click", function () {
+        jQuery('body').on("click",'.dw-undo', function () {
             var ele = jQuery(this).parents(".comment").find(".comment-content > table > tbody > tr > td > table, [data-dwtimgsrc], .new-img, .old-img");
             ele.toggle();
 
@@ -425,7 +428,7 @@
         //For Text insertion
         $textBox = jQuery("#body, #commenttext");
         $textBox.focusout(saveSelection);
-        $textBox.bind("beforedeactivate", function () {
+        $(document).on("beforedeactivate", "#body", function () {
             saveSelection();
             $textBox.unbind("focusout");
         });
@@ -528,25 +531,27 @@
         if (DT["AUTOSCROLL"]) {
             jQuery(window).scroll(function () {
                 if (jQuery(window).scrollTop() == jQuery(document).height() - jQuery(window).height()) {
-                    var actionBoxes = jQuery(pageBox);
+                    if ($('#comments').is(':visible')) {
+                        var actionBoxes = jQuery(pageBox);
 
-                    var nextPageButton = jQuery(nextButton);
-                    var url = '';
+                        var nextPageButton = jQuery(nextButton);
+                        var url = '';
 
-                    if (nextPageButton.is('a')) {
-                        url = nextPageButton.attr('href');
+                        if (nextPageButton.is('a')) {
+                            url = nextPageButton.attr('href');
 
-                        actionBoxes.spin('large');
+                            actionBoxes.spin('large');
 
 
-                        jQuery.ajax({
-                            url: url,
-                            type: 'GET',
-                            success: function (data) {
-                                addComments(data);
+                            jQuery.ajax({
+                                url: url,
+                                type: 'GET',
+                                success: function (data) {
+                                    addComments(data);
 
-                            }
-                        });
+                                }
+                            });
+                        }
                     }
                 }
             });
@@ -562,7 +567,7 @@
         }
 
         //add blacklist stuff
-        $(".dwtools-hidden a").on("click", function(e){
+        $(".dwtools-hidden a").on("click", function (e) {
             e.preventDefault();
             $(".hidden-" + $(this).attr("data-hiddenId")).show();
             $(this).parent().remove();
@@ -570,24 +575,21 @@
 
     }
 
-    async function docStart(){
+    async function docStart() {
         DT = await DWSync.load();
-
-        if(DT['BLACKLIST'].length > 0) {
-
-            runBlackList(DT);
-        }
     }
+
     docStart();
 
-    $(document).ready(function(){
+    $(document).ready(function () {
+        if (DT['EXPERIMENTAL'] && DT['BLACKLIST'].length > 0) {
+            runBlackList(DT);
+        }
+        $("#comments").show();
         initDWTools();
     });
 
 
-
-
-
-
-
 })();
+
+DT = {};
