@@ -4,11 +4,7 @@
   "short_name": "DWTools",
   "version": "5.0.0",
   "description": "Unofficial Dreamwidth Tools",
-  "applications": {
-    "gecko": {
-      "id": "dtools@ashleywr.com"
-    }
-  },
+
   "permissions": [
     "storage",
     "https://api.imgur.com/*"

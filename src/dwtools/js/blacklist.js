@@ -40,21 +40,6 @@ function runBlackList(DT) {
     }
 
 
-    function getLJCommentsObj() {
-        var query = "var LJ_cmtinfo = ";
-
-        var scripts = document.getElementsByTagName("script");
-        for (var i = 0; i < scripts.length; ++i) {
-            var text = scripts[i].innerHTML;
-            var index = text.indexOf(query);
-            if (index != -1) {
-                var json = text.substring(index + query.length);
-                eval('ljComments = ' + json);
-
-            }
-        }
-    }
-
     function BlackListCommentsJquery() {
         var hideThreadDepth = 1;
         var currentDepth = 1;
