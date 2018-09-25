@@ -1,14 +1,20 @@
 (function () {
     //globals
     var defaultDT = {
-        LAT: "<small>[ ",
-        RAT: " ]</small>",
-        TEXT: "font-family:courier new",
+        CUSTOMBUTTONS: [
+            {label: "Action Tag", open: `<small>[ `, close: ` ]</small>`},
+            {label: "Text Tag", open: `<span style="font-family:courier new;">`, close: `</span>`}
+        ],
         AUTOSCROLL: true,
         IMGUR: [],
-        EXPERIMENTAL: true,
-        BLACKLIST: []
-
+        EXPERIMENTAL: false,
+        BLACKLIST: [],
+        BLACKLISTMSG: true,
+        BLACKLISTDOMAIN: [],
+        BLACKLISTJOURNALS: [],
+        BLACKLISTJOURNALDOMAINS: [],
+        BLACKLISTJOURNALMSG: true,
+        FIXIMGURINLINE: false
     };
     var DT = {};
 
@@ -46,6 +52,81 @@
             ActionTagInsert();
         }
     });
+
+    function addCustomButtons(){
+
+        //Adding buttons
+
+        var subject = jQuery("#subject");
+        if (subject.length == 0) {
+            isPreviewPage = true;
+            $textBox = jQuery("textarea.textbox");
+            $textBox.focusout(saveSelection);
+            $textBox.bind("beforedeactivate", function () {
+                saveSelection();
+                $textBox.unbind("focusout");
+            });
+        }
+        else{
+            $textBox = jQuery("#body, #commenttext");
+            $textBox.focusout(saveSelection);
+            $(document).on("beforedeactivate", "#body", function () {
+                saveSelection();
+                $textBox.unbind("focusout");
+            });
+        }
+
+
+        for(var x=0; x< DT['CUSTOMBUTTONS'].length; x++){
+
+            if(isPreviewPage){
+
+                jQuery('input[name=subject]').after(`<input type="button" data-id="${x}" class="custom-button" value="${DT['CUSTOMBUTTONS'][x].label}">`);
+            }
+            else{
+                subject.after(`<input type="button" class="custom-button" data-id="${x}" value="${DT['CUSTOMBUTTONS'][x].label}">`);
+            }
+
+        }
+
+    }
+
+    function CustomButtonTagInsert(ele){
+
+        var id = ele.attr("data-id");
+        var tag = DT['CUSTOMBUTTONS'][id];
+
+
+            var selection = $textBox.data("lastSelection");
+            $textBox.focus();
+
+            if (selection == undefined) {
+                var text = tag.open + " " + tag.close;
+                text = text.replace(/^\s+|\s+$/g, '');
+                $textBox.text(text);
+            }
+            else {
+                $textBox.setSelection(selection.start, selection.end);
+                var text = $textBox.getSelection();
+                var originalText = text.text;
+
+                text = text.text.replace(/^\s+|\s+$/g, '');
+                text = tag.open + text + tag.close;
+                text = text.replace(/^\s+|\s+$/g, '');
+
+                if (originalText.charAt(0) == '\n') {
+                    text = "\n" + text;
+                }
+                if (originalText.charAt(originalText.length - 1) == '\n') {
+                    text = text + '\n';
+                }
+
+                $textBox.replaceSelectedText(text);
+            }
+
+
+
+    }
 
     function addComments(data) {
         var body = '<div id="body-mock">' + data.replace(/^[\s\S]*<body.*?>|<\/body>[\s\S]*$/g, '') + '</div>';
@@ -96,38 +177,6 @@
         }
 
 
-    }
-
-    function ActionTagInsert() {
-        getDT(function () {
-            var selection = $textBox.data("lastSelection");
-            $textBox.focus();
-
-            if (selection == undefined) {
-                var text = DT["LAT"] + " " + DT["RAT"];
-                text = text.replace(/^\s+|\s+$/g, '');
-                $textBox.text(text);
-            }
-            else {
-                $textBox.setSelection(selection.start, selection.end);
-                var text = $textBox.getSelection();
-                var originalText = text.text;
-
-                text = text.text.replace(/^\s+|\s+$/g, '');
-                text = DT["LAT"] + text + DT["RAT"];
-                text = text.replace(/^\s+|\s+$/g, '');
-
-                if (originalText.charAt(0) == '\n') {
-                    text = "\n" + text;
-                }
-                if (originalText.charAt(originalText.length - 1) == '\n') {
-                    text = text + '\n';
-                }
-
-                $textBox.replaceSelectedText(text);
-            }
-
-        });
     }
 
     function getPage() {
@@ -382,56 +431,60 @@
 
     function initDWTools() {
 
-        //for imgur icons in line
-        //TODO: make experimental
-        jQuery('[data-dwtimgsrc], .comment-content > table > tbody > tr > td > table').each(function () {
-            jQuery(this).hide();
-            jQuery(this).parents('.comment-content').find("td").each(function () {
-                jQuery(this).css({'padding': '0'});
-            });
-            var src = jQuery(this).attr("background");
+        addCustomButtons();
+        $(".custom-button").on("click",function(){
 
-            var img = jQuery(this).parents(".comment").find(".userpic img");
-            if (img.length > 0) {
-                img.css({'display': "none"}).addClass("old-img");
-                img.after("<img class='new-img' src='" + src + "'>");
-            }
-            else {
-                jQuery(this).parents(".comment").find(".userpic").html("<img class='new-img' src=" + src + ">");
-            }
+            CustomButtonTagInsert($(this))
 
-            var undo = chrome.extension.getURL('undo.png');
-            jQuery(this).parents(".comment").find(".comment-info").append("<span><img style='cursor: pointer' class='dw-undo' title='Undo the hidden icon (DWTools)' src=" + undo + "></span>");
-            //$(".comments-content > img").each(function(){ $(this).css({'margin-top':'-101px','position':'relative','float':'left'});});
         });
 
-        var padded = false;
-        jQuery('body').on("click",'.dw-undo', function () {
-            var ele = jQuery(this).parents(".comment").find(".comment-content > table > tbody > tr > td > table, [data-dwtimgsrc], .new-img, .old-img");
-            ele.toggle();
 
-            if (!padded) {
-                ele.parents('.comment-content').find("td").each(function () {
-                    jQuery(this).css({'padding': '.2em .5em'});
-                });
-                padded = true;
-            }
-            else {
-                ele.parents('.comment-content').find("td").each(function () {
+        //for imgur icons in line
+
+        if(DT['FIXIMGURINLINE']) {
+            jQuery('[data-dwtimgsrc], .comment-content > table > tbody > tr > td > table').each(function () {
+                jQuery(this).hide();
+                jQuery(this).parents('.comment-content').find("td").each(function () {
                     jQuery(this).css({'padding': '0'});
                 });
-                padded = false;
-            }
-        });
+                var src = jQuery(this).attr("background");
+
+                var img = jQuery(this).parents(".comment").find(".userpic img");
+                if (img.length > 0) {
+                    img.css({'display': "none"}).addClass("old-img");
+                    img.after("<img class='new-img' src='" + src + "'>");
+                }
+                else {
+                    jQuery(this).parents(".comment").find(".userpic").html("<img class='new-img' src=" + src + ">");
+                }
+
+                var undo = chrome.extension.getURL('img/undo.png');
+                jQuery(this).parents(".comment").find(".comment-info").append("<span><img style='cursor: pointer' class='dw-undo' title='Undo the hidden icon (DWTools)' src=" + undo + "></span>");
+                //$(".comments-content > img").each(function(){ $(this).css({'margin-top':'-101px','position':'relative','float':'left'});});
+            });
 
 
-        //For Text insertion
-        $textBox = jQuery("#body, #commenttext");
-        $textBox.focusout(saveSelection);
-        $(document).on("beforedeactivate", "#body", function () {
-            saveSelection();
-            $textBox.unbind("focusout");
-        });
+            var padded = false;
+            jQuery('body').on("click", '.dw-undo', function () {
+                var ele = jQuery(this).parents(".comment").find(".comment-content > table > tbody > tr > td > table, [data-dwtimgsrc], .new-img, .old-img");
+                ele.toggle();
+
+                if (!padded) {
+                    ele.parents('.comment-content').find("td").each(function () {
+                        jQuery(this).css({'padding': '.2em .5em'});
+                    });
+                    padded = true;
+                }
+                else {
+                    ele.parents('.comment-content').find("td").each(function () {
+                        jQuery(this).css({'padding': '0'});
+                    });
+                    padded = false;
+                }
+            });
+        }
+
+
 
 
         if (jQuery(NewCommentPageList).length <= 0) {
@@ -455,21 +508,7 @@
             oldLastComment = ".bottomcomment";
         }
 
-        //Adding buttons
-        var subject = jQuery("#subject");
-        if (subject.length == 0) {
-            isPreviewPage = true;
-            $textBox = jQuery("textarea.textbox");
-            $textBox.focusout(saveSelection);
-            $textBox.bind("beforedeactivate", function () {
-                saveSelection();
-                $textBox.unbind("focusout");
-            });
-            jQuery('input[name=subject]').after('<input type="button" id="openTag" value="Action Tag"><input type="button" id="textTag" value="Text Tag">');   //<input type="button" id="editor" value="Rich Edit">');
-        }
-        else {
-            subject.after('<input type="button" id="openTag" value="Action Tag"><input type="button" id="textTag" value="Text Tag">');   //<input type="button" id="editor" value="Rich Edit">');
-        }
+
 
 
         if (pages > 1) {
@@ -577,16 +616,19 @@
 
     async function docStart() {
         DT = await DWSync.load();
+        if (DT['EXPERIMENTAL'] && DT['BLACKLIST'].length > 0) {
+            $("#comments").hide();
+            runBlackList(DT);
+            $("#comments").show();
+        }
+        initDWTools();
     }
 
     docStart();
 
     $(document).ready(function () {
-        if (DT['EXPERIMENTAL'] && DT['BLACKLIST'].length > 0) {
-            runBlackList(DT);
-        }
-        $("#comments").show();
-        initDWTools();
+
+        //initDWTools();
     });
 
 

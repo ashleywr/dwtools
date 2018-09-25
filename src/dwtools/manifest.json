@@ -1,7 +1,7 @@
 {
   "name": "Dreamwidth Tools",
   "short_name": "DWTools",
-  "version": "4.7.0",
+  "version": "5.0.0",
   "author": "Ashley Wijnen-Riems",
   "manifest_version": 2,
   "permissions": [
@@ -16,7 +16,7 @@
   "description": "Unofficial Dreamwidth Tools",
   "content_scripts": [
     {
-//      "run_at": "document_start",
+      "run_at": "document_end",
       "matches": [
         "http://*.dreamwidth.org/*.html*",
         "http://www.dreamwidth.org/talkpost_do",
@@ -33,7 +33,7 @@
 
       ],
       "css": [
-        "css/iconselect.css"
+        "css/dwtools.css"
       ],
       "js": [
         "lib/jquery.js",
@@ -43,6 +43,7 @@
         "js/blacklist.js",
         "js/code.js"
       ]
+
     }
   ],
   "browser_action": {

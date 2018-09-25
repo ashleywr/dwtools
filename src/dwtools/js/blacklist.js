@@ -58,6 +58,7 @@ function runBlackList(DT) {
     function BlackListCommentsJquery() {
         var hideThreadDepth = 1;
         var currentDepth = 1;
+        var hidingThreads = false;
         var comments = document.querySelectorAll(".comment-thread");
         for (var x = 0; x < comments.length; x++) {
             var commentTop = comments[x];
@@ -74,10 +75,13 @@ function runBlackList(DT) {
 
             commentTop.classList.add('processed');
             //check if this comment is higher than the hideThreadDepth, if so hide it too
-            if (currentDepth > hideThreadDepth) {
+            if (hidingThreads && currentDepth > hideThreadDepth) {
                 comment.style.display = 'none';
                 comment.classList.add("hidden-" + HiddenThreadId.toString());
                 continue;
+            }
+            else{
+                hidingThreads = false;
             }
 
             var journal = comment.querySelector(".ljuser").getAttribute("lj:user");
@@ -88,6 +92,7 @@ function runBlackList(DT) {
                 comment.style.display = 'none';
                 comment.classList.add("hidden-" + HiddenThreadId.toString());
                 hideThreadDepth = currentDepth;
+                hidingThreads = true;
             }
 
             else if (commentTop.classList.contains("comment-depth-1")) {
@@ -138,6 +143,7 @@ function runBlackList(DT) {
                             }
 
                             hideThreadDepth = currentDepth;
+                            hidingThreads = true;
 
                         }
                     }

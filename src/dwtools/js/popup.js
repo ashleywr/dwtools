@@ -1,18 +1,20 @@
 (function () {
     //globals
     var defaultDT = {
-        LAT: "<small>[ ",
-        RAT: " ]</small>",
-        TEXT: "font-family:courier new",
+        CUSTOMBUTTONS: [
+            {label: "Action Tag", open: `<small>[ `, close: ` ]</small>`},
+            {label: "Text Tag", open: `<span style="font-family:courier new;">`, close: `</span>`}
+        ],
         AUTOSCROLL: true,
         IMGUR: [],
-        EXPERIMENTAL: true,
+        EXPERIMENTAL: false,
         BLACKLIST: [],
         BLACKLISTMSG: true,
         BLACKLISTDOMAIN: [],
-        BLACKLISTJOURNALS:[],
-        BLACKLISTJOURNALDOMAINS:[],
-        BLACKLISTJOURNALMSG: true
+        BLACKLISTJOURNALS: [],
+        BLACKLISTJOURNALDOMAINS: [],
+        BLACKLISTJOURNALMSG: true,
+        FIXIMGURINLINE: false
     };
     var DT = {};
 
@@ -46,6 +48,156 @@
     //page sections
     var CustomTextButtonsSection = (function () {
 
+
+        function addRowCustomButton(input) {
+            return `<div class="row saved-button-row">
+            <div class="col-sm-1">
+        <button class="button-edit btn btn-outline-primary btn-sm"
+                style="height: 18px; width: 30px; padding: 0; vertical-align: middle; line-height: 0;">Edit</button>
+                <input type="hidden" value="${input.label}">
+
+    </div>
+    <div class="col-sm-1">
+        <button class="button-remove btn btn-outline-danger btn-sm"
+                style="height: 18px; width: 18px; padding: 0; vertical-align: middle; line-height: 0; data-button-label="${input.label}">&#x2717;</button>
+                <input type="hidden" value="${input.label}">
+
+    </div>
+    <div class="col-sm-auto">
+        <span style="vertical-align: middle;">${input.label}</span>
+    </div>
+
+
+</div>`;
+        }
+
+        function fixOldStyleTags() {
+            if (DT["CUSTOMBUTTONS"].length == 0) {
+                if (DT["RAT"] != undefined && DT["RAT"] != "") {
+                    DT["CUSTOMBUTTONS"].push({
+                        label: "Action Tag",
+                        open: DT["LAT"],
+                        close: DT["RAT"]
+                    });
+
+                    delete DT["RAT"];
+                    delete DT['LAT'];
+                    DWSync.save();
+                }
+
+                if (DT["TEXT"] != undefined && DT["TEXT"] != "") {
+                    DT["CUSTOMBUTTONS"].push({
+                        label: "Text Tag",
+                        open: `<span style="font-family:courier new;">`,
+                        close: `</span>`
+                    });
+
+                    delete DT["TEXT"];
+                    DWSync.save();
+                }
+            }
+        }
+
+        function render() {
+            fixOldStyleTags();
+
+            //Create the imgur-album table
+            var html = "";
+            var savedTable = $("#buttons-saved");
+            for (var x = 0; x < DT["CUSTOMBUTTONS"].length; x++) {
+                html += addRowCustomButton(DT["CUSTOMBUTTONS"][x]);
+            }
+            savedTable.html(html);
+
+            savedTable.on('click', '.button-remove', function () {
+
+                var label = $(this).next().val();
+                for (var x = 0; x < DT["CUSTOMBUTTONS"].length; x++) {
+                    if (DT["CUSTOMBUTTONS"][x].label == label) {
+                        DT["CUSTOMBUTTONS"].splice(x, 1);
+                        break;
+                    }
+                }
+
+                $(this).parents('.saved-button-row:first').remove();
+
+                DWSync.save();
+            });
+
+            savedTable.on('click', '.button-edit', function () {
+
+                var label = $(this).next().val();
+                var obj = {};
+                for (var x = 0; x < DT["CUSTOMBUTTONS"].length; x++) {
+                    if (DT["CUSTOMBUTTONS"][x].label == label) {
+                        obj = $.extend({}, DT["CUSTOMBUTTONS"][x]);
+                        //DT["CUSTOMBUTTONS"].splice(x, 1);
+                        break;
+                    }
+                }
+
+                //DWSync.save();
+
+                $(".custom-button-label").val(obj.label);
+                $(".custom-button-open").val(obj.open);
+                $(".custom-button-close").val(obj.close);
+                //$(this).parents('.saved-button-row:first').remove();
+
+                applyTags(obj.open, obj.close);
+
+                //DWSync.save();
+            });
+
+            $(".button-form").on('keyup', 'input', function () {
+                delay(function () {
+
+                    applyTags($(".custom-button-open").val(), $(".custom-button-close").val());
+
+                }, 300);
+            });
+
+            function applyTags(opening, closing) {
+                $("#button-text-apply").html(`${opening}Lorem ipsum dolor sit amet, consectetur adipiscing elit.${closing}`);
+            }
+
+            jQuery(".button-form").on('submit', function (event) {
+                event.preventDefault();
+
+                var obj = {
+                    label: $(".custom-button-label").val(),
+                    open: $(".custom-button-open").val(),
+                    close: $(".custom-button-close").val()
+                };
+
+                var updated = false;
+                for (var x = 0; x < DT["CUSTOMBUTTONS"].length; x++) {
+                    if (DT["CUSTOMBUTTONS"][x].label == obj.label) {
+                        DT["CUSTOMBUTTONS"][x] = obj;
+                        updated = true;
+                        break;
+                    }
+                }
+                if (!updated) {
+                    DT['CUSTOMBUTTONS'].push(obj);
+                    savedTable.append(addRowCustomButton(obj));
+                }
+
+
+                DWSync.save();
+
+
+                $("#button-text-apply").html('');
+                $(this)[0].reset();
+
+
+            });
+
+
+        }
+
+        return {
+            render: render
+        };
 
     })();
     var ActionButtonsSection = (function () {
@@ -289,11 +441,11 @@
 
             //blacklist subject terms
             var blacklist = $("#BLACKLIST");
-            try{
+            try {
                 var str = DT["BLACKLIST"].join(", ");
                 blacklist.val(str);
             }
-            catch(e){
+            catch (e) {
                 DT["BLACKLIST"] = [];
             }
 
@@ -302,7 +454,7 @@
                 var self = $(this);
                 delay(function () {
                     var str = self.val();
-                    var arr = str.split(",").map(function(item) {
+                    var arr = str.split(",").map(function (item) {
                         return item.trim();
                     });
                     autosaveInput(self, arr);
@@ -328,11 +480,11 @@
 
             //blacklist subject domains
             var blacklistdomains = $("#BLACKLISTDOMAIN");
-            try{
+            try {
                 var str = DT["BLACKLISTDOMAIN"].join(", ");
                 blacklistdomains.val(str);
             }
-            catch(e){
+            catch (e) {
                 DT["BLACKLISTDOMAIN"] = [];
             }
 
@@ -341,7 +493,7 @@
                 var self = $(this);
                 delay(function () {
                     var str = self.val();
-                    var arr = str.split(",").map(function(item) {
+                    var arr = str.split(",").map(function (item) {
                         return item.trim();
                     });
                     autosaveInput(self, arr);
@@ -350,16 +502,14 @@
             });
 
 
-
-
             //do it again for journals
             //blacklist subject terms
             var blacklistjournals = $("#BLACKLISTJOURNALS");
-            try{
+            try {
                 var str = DT["BLACKLISTJOURNALS"].join(", ");
                 blacklistjournals.val(str);
             }
-            catch(e){
+            catch (e) {
                 DT["BLACKLISTJOURNALS"] = [];
             }
 
@@ -368,7 +518,7 @@
                 var self = $(this);
                 delay(function () {
                     var str = self.val();
-                    var arr = str.split(",").map(function(item) {
+                    var arr = str.split(",").map(function (item) {
                         return item.trim();
                     });
                     autosaveInput(self, arr);
@@ -394,11 +544,11 @@
 
             //blacklist subject domains
             var blacklistjournaldomains = $("#BLACKLISTJOURNALDOMAINS");
-            try{
+            try {
                 var str = DT["BLACKLISTJOURNALDOMAINS"].join(", ");
                 blacklistjournaldomains.val(str);
             }
-            catch(e){
+            catch (e) {
                 DT["BLACKLISTJOURNALDOMAINS"] = [];
             }
 
@@ -407,7 +557,7 @@
                 var self = $(this);
                 delay(function () {
                     var str = self.val();
-                    var arr = str.split(",").map(function(item) {
+                    var arr = str.split(",").map(function (item) {
                         return item.trim();
                     });
                     autosaveInput(self, arr);
@@ -415,6 +565,21 @@
 
             });
 
+
+            //imgur icon fix
+            var imgurixonfix = jQuery("#FIXIMGURINLINE");
+            if (DT["FIXIMGURINLINE"]) {
+                imgurixonfix.prop("checked", true);
+            }
+            else {
+                imgurixonfix.prop("checked", false);
+            }
+
+            imgurixonfix.on('click', function () {
+                DT["FIXIMGURINLINE"] = !DT["FIXIMGURINLINE"];
+
+                DWSync.save();
+            });
 
         };
 
@@ -469,8 +634,9 @@
     var DWToolsInit = async function () {
         DT = await DWSync.load();
 
-        ActionButtonsSection.render();
-        TextStyleSection.render();
+        //ActionButtonsSection.render();
+        //TextStyleSection.render();
+        CustomTextButtonsSection.render();
         AutoScrollSection.render();
         ImgurSection.render();
         ExperimentalSection.render();

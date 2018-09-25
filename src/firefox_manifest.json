@@ -1,7 +1,8 @@
 {
   "manifest_version": 2,
   "name": "Dreamwidth Tools",
-  "version": "4.0.2",
+  "short_name": "DWTools",
+  "version": "5.0.0",
   "description": "Unofficial Dreamwidth Tools",
   "applications": {
     "gecko": {
@@ -9,15 +10,22 @@
     }
   },
   "permissions": [
-    "activeTab"
+    "storage",
+    "https://api.imgur.com/*"
   ],
-  "browser_action": {
-
+  "icons": {
+    "16": "img/DTicon16.png",
+    "48": "img/DTicon48.png",
+    "128": "img/DTicon128.png"
   },
-  "web_accessible_resources": [
-  ],
+  "browser_action": {
+    "default_icon": "img/icon.png",
+    "default_popup": "html/popup.html"
+  },
+  "web_accessible_resources": ["img/undo.png"],
   "content_scripts": [
     {
+      "run_at": "document_end",
       "matches": [
         "http://*.dreamwidth.org/*.html*",
         "http://www.dreamwidth.org/talkpost_do",
@@ -31,18 +39,20 @@
         "https://www.dreamwidth.org/manage/icons",
         "http://dreamwidth.org/manage/icons",
         "https://dreamwidth.org/manage/icons"
+
       ],
       "css": [
-        "dwtools/iconselect.css"
+        "css/dwtools.css"
       ],
       "js": [
-        "dwtools/lib/jquery.js",
-        "dwtools/lib/spin.js",
-        "dwtools/lib/iconselect.max.js",
-        "dwtools/lib/rangyinputs_jquery.min.js",
-        "dwtools/js/code_firefox.js"
-
+        "lib/jquery.js",
+        "lib/spin.js",
+        "lib/iconselect.max.js",
+        "lib/rangyinputs_jquery.min.js",
+        "js/blacklist.js",
+        "js/code.js"
       ]
+
     }
   ]
 }
