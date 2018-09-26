@@ -21,7 +21,7 @@
     var NewCommentPageList = '.page-links';
     var OldCommentPageList = 'div.action-box div.inner > span > a';
 
-    var path = window.location.pathname;
+    var path = window.location.protocol + '//' + window.location.hostname + window.location.pathname;
     var $textBox;
     var ver;
     var pages;
@@ -43,7 +43,7 @@
         jQuery(commentThread).remove();
         jQuery(window).unbind('scroll');
         page = 1;
-        getPage();
+        getPage(page);
 
     });
 
@@ -53,7 +53,7 @@
         }
     });
 
-    function addCustomButtons(){
+    function addCustomButtons() {
 
         //Adding buttons
 
@@ -67,7 +67,7 @@
                 $textBox.unbind("focusout");
             });
         }
-        else{
+        else {
             $textBox = jQuery("#body, #commenttext");
             $textBox.focusout(saveSelection);
             $(document).on("beforedeactivate", "#body", function () {
@@ -77,13 +77,13 @@
         }
 
 
-        for(var x=0; x< DT['CUSTOMBUTTONS'].length; x++){
+        for (var x = 0; x < DT['CUSTOMBUTTONS'].length; x++) {
 
-            if(isPreviewPage){
+            if (isPreviewPage) {
 
                 jQuery('input[name=subject]').after(`<input type="button" data-id="${x}" class="custom-button" value="${DT['CUSTOMBUTTONS'][x].label}">`);
             }
-            else{
+            else {
                 subject.after(`<input type="button" class="custom-button" data-id="${x}" value="${DT['CUSTOMBUTTONS'][x].label}">`);
             }
 
@@ -91,39 +91,38 @@
 
     }
 
-    function CustomButtonTagInsert(ele){
+    function CustomButtonTagInsert(ele) {
 
         var id = ele.attr("data-id");
         var tag = DT['CUSTOMBUTTONS'][id];
 
 
-            var selection = $textBox.data("lastSelection");
-            $textBox.focus();
+        var selection = $textBox.data("lastSelection");
+        $textBox.focus();
 
-            if (selection == undefined) {
-                var text = tag.open + " " + tag.close;
-                text = text.replace(/^\s+|\s+$/g, '');
-                $textBox.text(text);
+        if (selection == undefined) {
+            var text = tag.open + " " + tag.close;
+            text = text.replace(/^\s+|\s+$/g, '');
+            $textBox.text(text);
+        }
+        else {
+            $textBox.setSelection(selection.start, selection.end);
+            var text = $textBox.getSelection();
+            var originalText = text.text;
+
+            text = text.text.replace(/^\s+|\s+$/g, '');
+            text = tag.open + text + tag.close;
+            text = text.replace(/^\s+|\s+$/g, '');
+
+            if (originalText.charAt(0) == '\n') {
+                text = "\n" + text;
             }
-            else {
-                $textBox.setSelection(selection.start, selection.end);
-                var text = $textBox.getSelection();
-                var originalText = text.text;
-
-                text = text.text.replace(/^\s+|\s+$/g, '');
-                text = tag.open + text + tag.close;
-                text = text.replace(/^\s+|\s+$/g, '');
-
-                if (originalText.charAt(0) == '\n') {
-                    text = "\n" + text;
-                }
-                if (originalText.charAt(originalText.length - 1) == '\n') {
-                    text = text + '\n';
-                }
-
-                $textBox.replaceSelectedText(text);
+            if (originalText.charAt(originalText.length - 1) == '\n') {
+                text = text + '\n';
             }
 
+            $textBox.replaceSelectedText(text);
+        }
 
 
     }
@@ -139,6 +138,7 @@
             eval(cmtinfo_new[0]);
         }
         catch (err) {
+            console.log(err);
             console.log("Problem eval cmtinfo.");
         }
 
@@ -159,8 +159,9 @@
             }
         }
         catch (err) {
+            console.log(err);
             console.log("LJ_cmtinfo not defined.");
-            console.log(data);
+            //console.log(data);
         }
 
         var newPage = jQuery(body);
@@ -172,71 +173,42 @@
         var newActionBox = newPage.find(pageBox).html();
         jQuery(pageBox).html(newActionBox);
 
-        if (DT['EXPERIMENTAL'] && DT['BLACKLIST'].length > 0) {
+        if (DT['EXPERIMENTAL'] && (DT['BLACKLIST'].length > 0 || DT['BLACKLISTJOURNALS'].length > 0)) {
             runBlackList(DT);
         }
 
 
     }
 
-    function getPage() {
-        if (page <= pages-1) {
+    function getPage(currentPage) {
+        if (currentPage <= pages) {
             jQuery(pageBox).spin('large');
-            (function () {
-                jQuery.ajax({
-                    url: path + '?page=' + page,
-                    type: 'GET',
-                    success: function (data) {
-                        addComments(data);
-                        page++;
-                        (function () {
-                            getPage();
-                        })();
-                    }
-                });
-            })(page);
+
+
+            var url = path + '?page=' + currentPage;
+
+            jQuery.ajax({
+                url: url,
+                type: 'GET',
+                success: function (data) {
+                    addComments(data);
+
+                    currentPage += 1;
+                    getPage(currentPage);
+
+
+                },
+                error: function (res) {
+                    console.log(res);
+                }
+            });
+
+
         }
         else {
             jQuery(pageBox).spin(false);
         }
 
-    }
-
-    function getDT(fn = ()=> {
-    }) {
-
-        try {
-            chrome.storage.sync.get("savedDT", function (res) {
-                if (res == undefined || res.savedDT == undefined) {
-                    DT = $.extend({}, defaultDT);
-                    saveDT(fn);
-                }
-                else {
-                    DT = JSON.parse(res.savedDT);
-                    fn();
-                }
-            });
-        }
-        catch (e) {
-            console.log(e);
-            DT = $.extend({}, defaultDT);
-            fn();
-
-        }
-
-    }
-
-    function saveDT(fn = ()=> {
-    }) {
-        try {
-            chrome.storage.sync.set({"savedDT": JSON.stringify(DT)}, function () {
-                fn();
-            });
-        }
-        catch (e) {
-            console.log(e);
-            fn();
-        }
     }
 
     //This is for icon uploading!
@@ -432,7 +404,7 @@
     function initDWTools() {
 
         addCustomButtons();
-        $(".custom-button").on("click",function(){
+        $(".custom-button").on("click", function () {
 
             CustomButtonTagInsert($(this))
 
@@ -441,7 +413,7 @@
 
         //for imgur icons in line
 
-        if(DT['FIXIMGURINLINE']) {
+        if (DT['FIXIMGURINLINE']) {
             jQuery('[data-dwtimgsrc], .comment-content > table > tbody > tr > td > table').each(function () {
                 jQuery(this).hide();
                 jQuery(this).parents('.comment-content').find("td").each(function () {
@@ -485,8 +457,6 @@
         }
 
 
-
-
         if (jQuery(NewCommentPageList).length <= 0) {
             pageList = OldCommentPageList;
             ver = 0;
@@ -501,14 +471,12 @@
             pageList = NewCommentPageList;
             ver = 1;
 
-            pages = (jQuery(NewCommentPageList + ":last").children().length);
+            pages = jQuery(".page-links:first > a").length + 1;
             pageBox = 'div.comment-page-list';
             commentThread = '.comment-thread';
             nextButton = ".page-next > b > :last";
             oldLastComment = ".bottomcomment";
         }
-
-
 
 
         if (pages > 1) {
@@ -521,6 +489,8 @@
             }
 
         }
+
+
         var lj_userpicselect = jQuery('#lj_userpicselect');
         if (lj_userpicselect.length == 0) {
             var userpics = jQuery('.userpics');
@@ -531,41 +501,61 @@
                 jQuery("#randomicon").before('<input type="button" id="lj_userpicselect" value="Browse">');
             }
 
+
             jQuery("#prop_picture_keyword").iconselector({
                 "selectorButtons": "#lj_userpicselect",
                 "smallicons": false,
                 "metatext": true
             });
+
+
         }
 
-        lj_userpicselect.after('<input type="button" id="imgur_userpicselect" value="Imgur Icons">');
-        jQuery("#imgur_userpicselect").iconselector_imgur({
-            "selectorButtons": "#imgur_userpicselect",
-            "smallicons": false,
-            "metatext": true
-        });
+
+        var journal = "";
 
 
-        jQuery(document).on('click', '#openTag', function () {
-            ActionTagInsert();
-        });
+        if ($("#remote").length > 0) {
+            journal = $("#remote").val();
+        }
+        else if (!(typeof LJ_cmtinfo === "undefined")) {
+            if (!(typeof LJ_cmtinfo.remote === "undefined")) {
+                journal = LJ_cmtinfo.remote;
+            }
+        }
+        else if (!(typeof remote === "undefined")) {
+            journal = remote;
+        }
+        else if ($("input[name=user]").length > 0) {
+            journal = $("input[name=user]").val();
+        }
 
-        jQuery(document).on('click', '#textTag', function () {
-            getDT(function () {
-                var selection = $textBox.data("lastSelection");
-                $textBox.focus();
+        var albumID = "";
+        for (var x in DT["IMGUR"]) {
+            if (DT["IMGUR"][x][0] == journal) {
+                albumID = DT["IMGUR"][x][1];
+                break;
+            }
+        }
 
-                if (selection == undefined) {
-                    $textBox.text('<span style="' + DT["TEXT"] + '"></span>');
-                }
-                else {
-                    $textBox.setSelection(selection.start, selection.end);
-                    var text = $textBox.getSelection();
-                    $textBox.replaceSelectedText('<span style="' + DT["TEXT"] + '">' + text.text + '</span>');
-                }
+        if (albumID != "") {
+            if (lj_userpicselect.length != 0) {
+                lj_userpicselect.after('<input type="button" id="imgur_userpicselect" value="Imgur Icons">');
+            }
+            else {
 
+                jQuery("#randomicon").before('<input type="button" id="imgur_userpicselect" value="Imgur Icons">');
+
+
+            }
+
+            jQuery("#imgur_userpicselect").iconselector_imgur({
+                "selectorButtons": "#imgur_userpicselect",
+                "smallicons": false,
+                "metatext": true
             });
-        });
+        }
+
 
         if (DT["AUTOSCROLL"]) {
             jQuery(window).scroll(function () {
@@ -616,7 +606,7 @@
 
     async function docStart() {
         DT = await DWSync.load();
-        if (DT['EXPERIMENTAL'] && DT['BLACKLIST'].length > 0) {
+        if (DT['EXPERIMENTAL'] && (DT['BLACKLIST'].length > 0 || DT['BLACKLISTJOURNALS'].length > 0)) {
             $("#comments").hide();
             runBlackList(DT);
             $("#comments").show();

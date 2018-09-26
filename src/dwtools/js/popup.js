@@ -454,10 +454,15 @@
                 var self = $(this);
                 delay(function () {
                     var str = self.val();
-                    var arr = str.split(",").map(function (item) {
-                        return item.trim();
-                    });
-                    autosaveInput(self, arr);
+                    if(str == ""){
+                        autosaveInput(self, []);
+                    }
+                    else{
+                        var arr = str.split(",").map(function (item) {
+                            return item.trim();
+                        });
+                        autosaveInput(self, arr);
+                    }
                 }, 500);
 
             });
@@ -493,10 +498,16 @@
                 var self = $(this);
                 delay(function () {
                     var str = self.val();
-                    var arr = str.split(",").map(function (item) {
-                        return item.trim();
-                    });
-                    autosaveInput(self, arr);
+                    if(str == ""){
+                        autosaveInput(self, []);
+                    }
+                    else{
+                        var arr = str.split(",").map(function (item) {
+                            return item.trim();
+                        });
+                        autosaveInput(self, arr);
+                    }
+
                 }, 500);
 
             });
@@ -518,10 +529,15 @@
                 var self = $(this);
                 delay(function () {
                     var str = self.val();
-                    var arr = str.split(",").map(function (item) {
-                        return item.trim();
-                    });
-                    autosaveInput(self, arr);
+                    if(str == ""){
+                        autosaveInput(self, []);
+                    }
+                    else{
+                        var arr = str.split(",").map(function (item) {
+                            return item.trim();
+                        });
+                        autosaveInput(self, arr);
+                    }
                 }, 500);
 
             });
@@ -557,10 +573,15 @@
                 var self = $(this);
                 delay(function () {
                     var str = self.val();
-                    var arr = str.split(",").map(function (item) {
-                        return item.trim();
-                    });
-                    autosaveInput(self, arr);
+                    if(str == ""){
+                        autosaveInput(self, []);
+                    }
+                    else{
+                        var arr = str.split(",").map(function (item) {
+                            return item.trim();
+                        });
+                        autosaveInput(self, arr);
+                    }
                 }, 500);
 
             });

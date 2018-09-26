@@ -1,7 +1,7 @@
 {
   "name": "Dreamwidth Tools",
   "short_name": "DWTools",
-  "version": "5.0.0",
+  "version": "5.0.3",
   "author": "Ashley Wijnen-Riems",
   "manifest_version": 2,
   "permissions": [

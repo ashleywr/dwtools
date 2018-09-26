@@ -1,9 +1,8 @@
 <component name="ArtifactManager">
-  <artifact build-on-make="true" name="firefox-dwtools">
-    <output-path>$PROJECT_DIR$/out/artifacts/firefox_dwtools</output-path>
+  <artifact build-on-make="true" name="dwtools">
+    <output-path>$PROJECT_DIR$/out/artifacts/dwtools</output-path>
     <root id="root">
       <element id="archive" name="dwtools.zip">
-        <element id="file-copy" path="$PROJECT_DIR$/firefox/manifest.json" />
         <element id="dir-copy" path="$PROJECT_DIR$/src/dwtools" />
       </element>
     </root>

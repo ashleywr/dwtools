@@ -1,30 +1,53 @@
 function runBlackList(DT) {
     //keeps a id to be able to map to eventlisteners
     HiddenThreadId = 0;
-    var BlackListJournals;
+    var BlackListJournals = {};
     var checkJournals = false;
     var checkBlacklist = false;
 
     try {
 
         var url = window.location.href;
-        for (var x in DT['BLACKLISTDOMAIN']) {
-            if (matchRuleShort(url, DT['BLACKLISTDOMAIN'][x])) {
+        if(DT['BLACKLISTDOMAIN'].length == 0 && DT['BLACKLIST'].length > 0){
+            if(DT['BLACKLIST'][0] != "") {
                 checkBlacklist = true;
-                break;
+            }
+        }
+        else{
+            for (var x in DT['BLACKLISTDOMAIN']) {
+                if (matchRuleShort(url, '*' + DT['BLACKLISTDOMAIN'][x])) {
+                    checkBlacklist = true;
+                    break;
+                }
             }
         }
 
-        for (var z in DT['BLACKLISTJOURNALDOMAINS']) {
-            if (matchRuleShort(url, DT['BLACKLISTJOURNALDOMAINS'][x])) {
+        if(DT['BLACKLISTJOURNALDOMAINS'].length == 0 && DT['BLACKLISTJOURNALS'].length > 0){
+            if(DT['BLACKLISTJOURNALS'][0] != "") {
                 checkJournals = true;
-                BlackListJournals = DT['BLACKLISTJOURNALS'].reduce(function (map, obj) {
-                    map[obj] = true;
-                    return map;
-                }, {});
-                break;
             }
         }
+        else {
+            for (var z in DT['BLACKLISTJOURNALDOMAINS']) {
+                if (matchRuleShort(url, '*' + DT['BLACKLISTJOURNALDOMAINS'][z])) {
+                    checkJournals = true;
+                    //BlackListJournals = DT['BLACKLISTJOURNALS'].reduce(function (map, obj) {
+                    //    map[obj] = true;
+                    //    return map;
+                    //}, {});
+
+
+                }
+            }
+        }
+
+        if(checkJournals){
+
+            for (var y in DT['BLACKLISTJOURNALS']) {
+                BlackListJournals[DT['BLACKLISTJOURNALS'][y]] = true;
+            }
+        }
+
 
         if (checkJournals || checkBlacklist) {
             BlackListCommentsJquery();
@@ -109,11 +132,13 @@ function runBlackList(DT) {
                         var filterList = DT['BLACKLIST'];
                         var matches = [];
                         for (var i = 0; i < filterList.length; ++i) {
-                            var reText = filterList[i];
+                            if(filterList[i] != "") {
+                                var reText = filterList[i];
 
-                            var pattern = new RegExp(reText, 'i');
-                            if (pattern.test(searchable)) {
-                                matches.push(filterList[i]);
+                                var pattern = new RegExp(reText, 'i');
+                                if (pattern.test(searchable)) {
+                                    matches.push(filterList[i]);
+                                }
                             }
                         }
 

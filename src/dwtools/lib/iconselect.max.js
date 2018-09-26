@@ -1120,7 +1120,8 @@
             e(":input", e.fn.iconselector.instance).prop("disabled", true);
             e("#iconselector_search", e.fn.iconselector.instance).bind("keyup click", h);
             var n = Site.currentJournalBase ? "/" + Site.currentJournal + "/__rpc_userpicselect" : "/__rpc_userpicselect";
-            e.getJSON(n, function (o) {
+            var path = window.location.protocol + '//' + window.location.hostname;
+            e.getJSON(path + n, function (o) {
                 if (!o) {
                     e("#iconselector_icons").html("<h2>Error</h2><p>Unable to load icons data</p>");
                     return
