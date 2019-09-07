@@ -57,25 +57,13 @@
 
         //Adding buttons
 
+        $textBox = jQuery("#body, #commenttext, #previewform textarea.textbox");
+        $textBox.focusout(saveSelection);
+
         var subject = jQuery("#subject");
         if (subject.length == 0) {
             isPreviewPage = true;
-            $textBox = jQuery("textarea.textbox");
-            $textBox.focusout(saveSelection);
-            $textBox.bind("beforedeactivate", function () {
-                saveSelection();
-                $textBox.unbind("focusout");
-            });
         }
-        else {
-            $textBox = jQuery("#body, #commenttext");
-            $textBox.focusout(saveSelection);
-            $(document).on("beforedeactivate", "#body", function () {
-                saveSelection();
-                $textBox.unbind("focusout");
-            });
-        }
-
 
         for (var x = 0; x < DT['CUSTOMBUTTONS'].length; x++) {
 
