@@ -31,7 +31,6 @@
     var commentThread;
     var nextButton;
     var oldLastComment;
-    var isPreviewPage = false;
 
     function saveSelection() {
         $textBox.data("lastSelection", $textBox.getSelection());
@@ -57,26 +56,30 @@
 
         //Adding buttons
 
+        // Respectively: quick-reply, old talkform, old preview form.
         $textBox = jQuery("#body, #commenttext, #previewform textarea.textbox");
         $textBox.focusout(saveSelection);
 
-        var subject = jQuery("#subject");
-        if (subject.length == 0) {
-            isPreviewPage = true;
+        var makeButton = (button, i) => `<input type="button" data-id="${i}" class="custom-button" value="${button.label}" />`;
+        var buttons =
+            '<div class="dwtools-custom-buttons">' +
+            DT['CUSTOMBUTTONS'].map( makeButton ).join(' ') +
+            '</div>';
+
+        // Try to insert between the subject and the body.
+        if ( jQuery('.qr-body').length > 0 ) {
+            // quick-reply or post-#2480 talkform. Insert above body's parent
+            // div. In mid-2019 quick-reply, this ends up above the subject, to
+            // avoid a stretchy flexbox situation. After #2522, it goes between.
+            jQuery('.qr-body').before(buttons);
+        } else if ( jQuery('.talkform #misc_controls').length > 0 ) {
+            // old talkform. Insert above message body, but don't misalign the
+            // "Message:" label.
+            jQuery('#misc_controls').after(buttons);
+        } else {
+            // old preview page, or something unexpected.
+            $textBox.before(buttons);
         }
-
-        for (var x = 0; x < DT['CUSTOMBUTTONS'].length; x++) {
-
-            if (isPreviewPage) {
-
-                jQuery('input[name=subject]').after(`<input type="button" data-id="${x}" class="custom-button" value="${DT['CUSTOMBUTTONS'][x].label}">`);
-            }
-            else {
-                subject.after(`<input type="button" class="custom-button" data-id="${x}" value="${DT['CUSTOMBUTTONS'][x].label}">`);
-            }
-
-        }
-
     }
 
     function CustomButtonTagInsert(ele) {
