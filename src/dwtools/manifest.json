@@ -19,6 +19,12 @@
       "run_at": "document_end",
       "matches": [
         "*://*.dreamwidth.org/*.html*",
+        "*://*.dreamwidth.org/",
+        "*://*.dreamwidth.org/?*",
+        "*://*.dreamwidth.org/*/*/*",
+        "*://*.dreamwidth.org/tag/*",
+        "*://*.dreamwidth.org/read*",
+        "*://*.dreamwidth.org/network*",
         "*://www.dreamwidth.org/talkpost_do",
         "*://www.dreamwidth.org/editicons",
         "*://dreamwidth.org/editicons",
