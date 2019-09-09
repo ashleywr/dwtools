@@ -18,18 +18,18 @@
     {
       "run_at": "document_end",
       "matches": [
-        "http://*.dreamwidth.org/*.html*",
-        "http://www.dreamwidth.org/talkpost_do",
-        "https://*.dreamwidth.org/*.html*",
-        "https://www.dreamwidth.org/talkpost_do",
-        "http://dreamwidth.org/editicons",
-        "https://dreamwidth.org/editicons",
-        "http://www.dreamwidth.org/editicons",
-        "https://www.dreamwidth.org/editicons",
-        "http://www.dreamwidth.org/manage/icons",
-        "https://www.dreamwidth.org/manage/icons",
-        "http://dreamwidth.org/manage/icons",
-        "https://dreamwidth.org/manage/icons"
+        "*://*.dreamwidth.org/*.html*",
+        "*://*.dreamwidth.org/",
+        "*://*.dreamwidth.org/?*",
+        "*://*.dreamwidth.org/*/*/*",
+        "*://*.dreamwidth.org/tag/*",
+        "*://*.dreamwidth.org/read*",
+        "*://*.dreamwidth.org/network*",
+        "*://www.dreamwidth.org/talkpost_do",
+        "*://www.dreamwidth.org/editicons",
+        "*://dreamwidth.org/editicons",
+        "*://www.dreamwidth.org/manage/icons",
+        "*://dreamwidth.org/manage/icons"
 
       ],
       "css": [
