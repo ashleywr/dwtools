@@ -70,7 +70,7 @@
         if ( jQuery('.qr-body').length > 0 ) {
             // quick-reply or post-#2480 talkform. Insert above body's parent
             // div. In mid-2019 quick-reply, this ends up above the subject, to
-            // avoid a stretchy flexbox situation. After #2522, it goes between.
+            // avoid a stretchy width: 100% situation. After #2522, it goes between.
             jQuery('.qr-body').before(buttons);
         } else if ( jQuery('.talkform #misc_controls').length > 0 ) {
             // old talkform. Insert above message body, but don't misalign the
